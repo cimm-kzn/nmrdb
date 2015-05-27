@@ -21,4 +21,7 @@
 from app import app
 
 if __name__ == '__main__':
+    app.config['USERNAME'] = '123'
+    app.config['PASSWORD'] = '321'
+    app.config['SECRET_KEY'] = 'development key'
     app.run(debug=True)
