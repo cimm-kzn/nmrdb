@@ -49,3 +49,4 @@ def login():
 def logout():
     session['logged_in'] = False
     return redirect(url_for('index'))
+
