@@ -7,6 +7,7 @@ from random import randint
 db = Database("sqlite", "/tmp/database.sqlite", create_db=True)
 crc = crc8()
 
+
 class Users(db.Entity):
     id = PrimaryKey(int, auto=True)
     name = Required(str, unique=True)
@@ -25,6 +26,21 @@ class Tasks(db.Entity):
     title = Required(str)
     structure = Required(str)
     spectras = Set("Spectras")
+    h1 = Optional(bool)
+    h1_p31 = Optional(bool)
+    p31 = Optional(bool)
+    p31_h1 = Optional(bool)
+    c13 = Optional(bool)
+    c13_h1 = Optional(bool)
+    c13_apt = Optional(bool)
+    c13_dept = Optional(bool)
+    f19 = Optional(bool)
+    si29 = Optional(bool)
+    b11 = Optional(bool)
+    noesy = Optional(bool)
+    hsqc = Optional(bool)
+    hmbc = Optional(bool)
+    cosy = Optional(bool)
 
 
 class Laboratory(db.Entity):
@@ -42,12 +58,14 @@ class Avatars(db.Entity):
 
 class Spectras(db.Entity):
     id = PrimaryKey(int, auto=True)
+    stype = Required(int)
     file = Required(str)
     task = Required(Tasks)
 
 
 sql_debug(True)
 db.generate_mapping(create_tables=True)
+
 
 class NmrDB:
     @db_session
@@ -58,8 +76,8 @@ class NmrDB:
             user = Users(name=name, passwd=passwd, laboratory=lab)
             Avatars(user=user, users=user)
             return True
-        else:
-            return False
+
+        return False
 
     @db_session
     def addlab(self, name):
@@ -67,8 +85,8 @@ class NmrDB:
         if not lab:
             Laboratory(name=name)
             return True
-        else:
-            return False
+
+        return False
 
     @db_session
     def addava(self, fromuser, touser):
@@ -78,23 +96,26 @@ class NmrDB:
             ava = fromuser.personalavatar
             touser.avatars.add(ava)
             return True
-        else:
-            return False
+
+        return False
 
     @db_session
-    def getnewava(self, user):
+    def changeava(self, user):
         user = Users.get(id=user)
         if user:
             user.personalavatar = Avatars(user=user, users=user)
             return True
-        else:
-            return False
+
+        return False
 
     @db_session
     def changepasswd(self, user, passwd):
         user = Users.get(id=user)
         if user:
             user.passwd = passwd
+            return True
+
+        return False
 
     @db_session
     def changelab(self, user, lab):
@@ -102,6 +123,9 @@ class NmrDB:
         lab = Laboratory.get(id=lab)
         if user and lab:
             user.laboratory = lab
+            return True
+
+        return False
 
     @db_session
     def addtask(self, user, **kwargs):
@@ -109,11 +133,89 @@ class NmrDB:
         key = '%04d' % randint(1, 9999)
         key = '%s%03d' % (key, crc.calc(key))
         if user:
-            Tasks(avatar=user.personalavatar, time=time.time(), key=key, status=False)
+            Tasks(avatar=user.personalavatar, time=time.time(), key=key, status=False,
+                  title=kwargs.get("title", ''), structure=kwargs.get("structure"),
+                  h1=kwargs.get('h1', False),
+                  h1_p31=kwargs.get('h1_p31', False),
+                  p31=kwargs.get('p31', False),
+                  p31_h1=kwargs.get('p31_h1', False),
+                  c13=kwargs.get('c13', False),
+                  c13_h1=kwargs.get('c13_h1', False),
+                  c13_apt=kwargs.get('c13_apt', False),
+                  c13_dept=kwargs.get('c13_dept', False),
+                  f19=kwargs.get('f19', False),
+                  si29=kwargs.get('si29', False),
+                  b11=kwargs.get('b11', False),
+                  noesy=kwargs.get('noesy', False),
+                  hsqc=kwargs.get('hsqc', False),
+                  hmbc=kwargs.get('hmbc', False),
+                  cosy=kwargs.get('cosy', False))
             return key
-        else:
-            return False
+
+        return False
 
     @db_session
-    def f(self, user):
-        pass
+    def getuser(self, name):
+        user = Users.get(name=name)
+        if user:
+            return dict(id=user.id, name=user.name, passwd=user.passwd)
+
+        return False
+
+    @db_session
+    def gettaskbykey(self, key):
+        if key == '%s%03d' % (key[:4], crc.calc(key[:4])):
+            task = Tasks.get(key=key)
+            if task:
+                return self.__gettask(task)
+
+        return False
+
+    @db_session
+    def gettask(self, task):
+        task = Tasks.get(id=task)
+        if task:
+            return self.__gettask(task)
+
+        return False
+
+    @staticmethod
+    def __gettask(task):
+        return dict(title=task.title, structure=task.structure, status=task.status,
+                    files=[dict(file=x.file, stype=x.stype) for x in task.spectras],
+                    h1=task.h1,
+                    h1_p31=task.h1_p31,
+                    p31=task.p31,
+                    p31_h1=task.p31_h1,
+                    c13=task.c13,
+                    c13_h1=task.c13_h1,
+                    c13_apt=task.c13_apt,
+                    c13_dept=task.c13_dept,
+                    f19=task.f19,
+                    si29=task.si29,
+                    b11=task.b11,
+                    noesy=task.noesy,
+                    hsqc=task.hsqc,
+                    hmbc=task.hmbc,
+                    cosy=task.cosy)
+
+    @db_session
+    def settaskstatus(self, task, status=True):
+        task = Tasks.get(id=task)
+        if task:
+            task.status = status
+            return True
+
+        return False
+
+    @db_session
+    def gettasklist(self, user=None, status=None):
+        if user is not None:
+            user = Users.get(id=user)
+
+        return [dict(id=x.id, time=x.time, status=x.status, key=x.key) for x in select(
+            x for x in Tasks if (status is None or x.status == status) and (user is None or x.avatar in user.avatars))]
+
+    @db_session
+    def getlabslist(self):
+        return [dict(id=x.id, name=x.name) for x in Laboratory.select()]
