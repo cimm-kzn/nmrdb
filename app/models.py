@@ -1,7 +1,11 @@
 __author__ = 'stsouko'
 from pony.orm import *
+import time
+from .lib.crc8 import crc8
+from random import randint
 
 db = Database("sqlite", "/tmp/database.sqlite", create_db=True)
+crc = crc8()
 
 class Users(db.Entity):
     id = PrimaryKey(int, auto=True)
@@ -14,12 +18,12 @@ class Users(db.Entity):
 
 class Tasks(db.Entity):
     id = PrimaryKey(int, auto=True)
+    avatar = Required("Avatars")
     time = Required(int)
-    key = Required(int)
+    key = Required(str)
     status = Required(bool)
     title = Required(str)
     structure = Required(str)
-    avatar = Required("Avatars")
     spectras = Set("Spectras")
 
 
@@ -49,8 +53,8 @@ class NmrDB:
     @db_session
     def adduser(self, name, passwd, lab):
         user = Users.get(name=name)
-        if not user:
-            lab = Laboratory.get(id=lab)
+        lab = Laboratory.get(id=lab)
+        if lab and not user:
             user = Users(name=name, passwd=passwd, laboratory=lab)
             Avatars(user=user, users=user)
             return True
@@ -85,3 +89,31 @@ class NmrDB:
             return True
         else:
             return False
+
+    @db_session
+    def changepasswd(self, user, passwd):
+        user = Users.get(id=user)
+        if user:
+            user.passwd = passwd
+
+    @db_session
+    def changelab(self, user, lab):
+        user = Users.get(id=user)
+        lab = Laboratory.get(id=lab)
+        if user and lab:
+            user.laboratory = lab
+
+    @db_session
+    def addtask(self, user, **kwargs):
+        user = Users.get(id=user)
+        key = '%04d' % randint(1, 9999)
+        key = '%s%03d' % (key, crc.calc(key))
+        if user:
+            Tasks(avatar=user.personalavatar, time=time.time(), key=key, status=False)
+            return key
+        else:
+            return False
+
+    @db_session
+    def f(self, user):
+        pass
