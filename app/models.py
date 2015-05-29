@@ -135,7 +135,21 @@ class NmrDB:
         if user:
             Tasks(avatar=user.personalavatar, time=time.time(), key=key, status=False,
                   title=kwargs.get("title", ''), structure=kwargs.get("structure"),
-                  h1=kwargs.get('1h', False))
+                  h1=kwargs.get('h1', False),
+                  h1_p31=kwargs.get('h1_p31', False),
+                  p31=kwargs.get('p31', False),
+                  p31_h1=kwargs.get('p31_h1', False),
+                  c13=kwargs.get('c13', False),
+                  c13_h1=kwargs.get('c13_h1', False),
+                  c13_apt=kwargs.get('c13_apt', False),
+                  c13_dept=kwargs.get('c13_dept', False),
+                  f19=kwargs.get('f19', False),
+                  si29=kwargs.get('si29', False),
+                  b11=kwargs.get('b11', False),
+                  noesy=kwargs.get('noesy', False),
+                  hsqc=kwargs.get('hsqc', False),
+                  hmbc=kwargs.get('hmbc', False),
+                  cosy=kwargs.get('cosy', False))
             return key
 
         return False
@@ -153,7 +167,7 @@ class NmrDB:
         if key == '%s%03d' % (key[:4], crc.calc(key[:4])):
             task = Tasks.get(key=key)
             if task:
-                return dict(title=task.title, structure=task.structure)
+                return self.__gettask(task)
 
         return False
 
@@ -161,10 +175,29 @@ class NmrDB:
     def gettask(self, task):
         task = Tasks.get(id=task)
         if task:
-            return dict(title=task.title, structure=task.structure, status=task.status,
-                        files=[dict(file=x.file, stype=x.stype) for x in task.spectras])
+            return self.__gettask(task)
 
         return False
+
+    @staticmethod
+    def __gettask(task):
+        return dict(title=task.title, structure=task.structure, status=task.status,
+                    files=[dict(file=x.file, stype=x.stype) for x in task.spectras],
+                    h1=task.h1,
+                    h1_p31=task.h1_p31,
+                    p31=task.p31,
+                    p31_h1=task.p31_h1,
+                    c13=task.c13,
+                    c13_h1=task.c13_h1,
+                    c13_apt=task.c13_apt,
+                    c13_dept=task.c13_dept,
+                    f19=task.f19,
+                    si29=task.si29,
+                    b11=task.b11,
+                    noesy=task.noesy,
+                    hsqc=task.hsqc,
+                    hmbc=task.hmbc,
+                    cosy=task.cosy)
 
     @db_session
     def settaskstatus(self, task, status=True):
