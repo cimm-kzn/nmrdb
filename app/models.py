@@ -264,7 +264,7 @@ class NmrDB:
     @db_session
     def getstatistics(self, stime=0):
         stats = {}
-        for x, y, z in select((x.stype, x.task.avatar.laboratory.name, x.task.time) for x in Spectras if x.task.time > stime):
+        for x, y, z in left_join((x.stype, x.task.avatar.laboratory.name, x.task.time) for x in Spectras if x.task.time > stime):
             x = self.__stypeval.get(x, 'h1')
             if y in stats:
                 if x in stats[y]:
