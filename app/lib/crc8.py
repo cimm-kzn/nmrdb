@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-__author__ = 'stsouko'
+__author__ = 'i dunno'
 
 
 class CRC8:

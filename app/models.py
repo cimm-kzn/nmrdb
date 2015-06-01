@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright 2015 Ramil Nugmanov <stsouko@live.ru>
+# This file is part of nmrdb.
+#
+# nmrdb is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
 __author__ = 'stsouko'
 from pony.orm import *
 import time
@@ -69,11 +89,10 @@ db.generate_mapping(create_tables=True)
 
 class NmrDB:
     def __init__(self):
-        self.__stypekey = dict(h1=1, h1_p31=2, p31=3, p31_h1=4, c13=5, c13_h1=6, c13_apt=7, c13_dept=8, f19=9, si29=10,
-                               b11=11, noesy=12, hsqc=13, hmbc=14, cosy=15)
-        self.__stypeval = {y: x for x, y in self.__stypekey.items()}
         self.__cost = dict(h1=2, h1_p31=1, p31=5, p31_h1=1, c13=60, c13_h1=60, c13_apt=60, c13_dept=60, f19=1, si29=1,
                            b11=1, noesy=60, hsqc=60, hmbc=60, cosy=60)
+        self.__stypekey = {y: x + 1 for x, y in enumerate(sorted(self.__cost))}
+        self.__stypeval = {y: x for x, y in self.__stypekey.items()}
 
     @db_session
     def adduser(self, name, passwd, lab):
