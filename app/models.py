@@ -1,18 +1,17 @@
 __author__ = 'stsouko'
 from pony.orm import *
 import time
-from .lib.crc8 import crc8
+from app.lib.crc8 import CRC8
 from random import randint
 
 db = Database("sqlite", "/tmp/database.sqlite", create_db=True)
-crc = crc8()
+crc = CRC8()
 
 
 class Users(db.Entity):
     id = PrimaryKey(int, auto=True)
     name = Required(str, unique=True)
     passwd = Required(str)
-    laboratory = Required("Laboratory")
     avatars = Set("Avatars", reverse="users")
     personalavatar = Optional("Avatars", reverse="user")
 
@@ -46,14 +45,15 @@ class Tasks(db.Entity):
 class Laboratory(db.Entity):
     id = PrimaryKey(int, auto=True)
     name = Required(str)
-    users = Set(Users)
+    avatars = Set("Avatars")
 
 
 class Avatars(db.Entity):
     id = PrimaryKey(int, auto=True)
+    user = Optional(Users, reverse="personalavatar")
     tasks = Set(Tasks)
     users = Set(Users, reverse="avatars")
-    user = Optional(Users, reverse="personalavatar")
+    laboratory = Required(Laboratory)
 
 
 class Spectras(db.Entity):
@@ -68,13 +68,20 @@ db.generate_mapping(create_tables=True)
 
 
 class NmrDB:
+    def __init__(self):
+        self.__stypekey = dict(h1=1, h1_p31=2, p31=3, p31_h1=4, c13=5, c13_h1=6, c13_apt=7, c13_dept=8, f19=9, si29=10,
+                               b11=11, noesy=12, hsqc=13, hmbc=14, cosy=15)
+        self.__stypeval = {y: x for x, y in self.__stypekey.items()}
+        self.__cost = dict(h1=2, h1_p31=1, p31=5, p31_h1=1, c13=60, c13_h1=60, c13_apt=60, c13_dept=60, f19=1, si29=1,
+                           b11=1, noesy=60, hsqc=60, hmbc=60, cosy=60)
+
     @db_session
     def adduser(self, name, passwd, lab):
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
-            user = Users(name=name, passwd=passwd, laboratory=lab)
-            Avatars(user=user, users=user)
+            user = Users(name=name, passwd=passwd)
+            Avatars(user=user, users=user, laboratory=lab)
             return True
 
         return False
@@ -89,7 +96,7 @@ class NmrDB:
         return False
 
     @db_session
-    def addava(self, fromuser, touser):
+    def shareava(self, fromuser, touser):
         fromuser = Users.get(id=fromuser)
         touser = Users.get(id=touser)
         if fromuser and touser:
@@ -103,7 +110,18 @@ class NmrDB:
     def changeava(self, user):
         user = Users.get(id=user)
         if user:
-            user.personalavatar = Avatars(user=user, users=user)
+            lab = user.laboratory
+            user.personalavatar = Avatars(user=user, users=user, laboratory=lab)
+            return True
+
+        return False
+
+    @db_session
+    def changelab(self, user, lab):
+        user = Users.get(id=user)
+        lab = Laboratory.get(id=lab)
+        if user and lab:
+            user.personalavatar = Avatars(user=user, users=user, laboratory=lab)
             return True
 
         return False
@@ -117,23 +135,16 @@ class NmrDB:
 
         return False
 
-    @db_session
-    def changelab(self, user, lab):
-        user = Users.get(id=user)
-        lab = Laboratory.get(id=lab)
-        if user and lab:
-            user.laboratory = lab
-            return True
-
-        return False
+    @staticmethod
+    def __gettaskkey(key):
+        return '%s%d' % (key, crc.calc(key) % 10)
 
     @db_session
     def addtask(self, user, **kwargs):
         user = Users.get(id=user)
-        key = '%04d' % randint(1, 9999)
-        key = '%s%03d' % (key, crc.calc(key))
+        key = self.__gettaskkey('%04d' % randint(1, 9999))
         if user:
-            Tasks(avatar=user.personalavatar, time=time.time(), key=key, status=False,
+            Tasks(avatar=user.personalavatar, time=int(time.time()), key=key, status=False,
                   title=kwargs.get("title", ''), structure=kwargs.get("structure"),
                   h1=kwargs.get('h1', False),
                   h1_p31=kwargs.get('h1_p31', False),
@@ -158,13 +169,13 @@ class NmrDB:
     def getuser(self, name):
         user = Users.get(name=name)
         if user:
-            return dict(id=user.id, name=user.name, passwd=user.passwd)
+            return dict(id=user.id, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name)
 
         return False
 
     @db_session
     def gettaskbykey(self, key):
-        if key == '%s%03d' % (key[:4], crc.calc(key[:4])):
+        if key == self.__gettaskkey(key[:4]):
             task = Tasks.get(key=key)
             if task:
                 return self.__gettask(task)
@@ -179,10 +190,9 @@ class NmrDB:
 
         return False
 
-    @staticmethod
-    def __gettask(task):
+    def __gettask(self, task):
         return dict(title=task.title, structure=task.structure, status=task.status,
-                    files=[dict(file=x.file, stype=x.stype) for x in task.spectras],
+                    files=[dict(file=x.file, stype=self.__stypeval.get(x.stype, "h1")) for x in task.spectras],
                     h1=task.h1,
                     h1_p31=task.h1_p31,
                     p31=task.p31,
@@ -209,13 +219,41 @@ class NmrDB:
         return False
 
     @db_session
-    def gettasklist(self, user=None, status=None):
-        if user is not None:
-            user = Users.get(id=user)
+    def gettasklist(self, user=0, status=None, page=1, pagesize=50):
+        user = Users.get(id=user)
+        if user:
+            q = select(x for x in Tasks if (status is None or x.status == status) and x.avatar in user.avatars)
+        else:
+            q = select(x for x in Tasks if status is None or x.status == status)
 
-        return [dict(id=x.id, time=x.time, status=x.status, key=x.key) for x in select(
-            x for x in Tasks if (status is None or x.status == status) and (user is None or x.avatar in user.avatars))]
+        return [dict(id=x.id, time=x.time, status=x.status, key=x.key) for x in q.order_by(
+            Tasks.id.desc()).page(page, pagesize=pagesize)]
 
     @db_session
     def getlabslist(self):
         return [dict(id=x.id, name=x.name) for x in Laboratory.select()]
+
+    @db_session
+    def addspectras(self, task, name, stype):
+        task = Tasks.get(id=task)
+        if task:
+            Spectras(task=task, stype=self.__stypekey.get(stype, 1), file=name)
+            return True
+
+        return False
+
+    @db_session
+    def getstatistics(self, stime=0):
+        stats = {}
+        for x, y, z in select((x.stype, x.task.avatar.laboratory.name, x.task.time) for x in Spectras if x.task.time > stime):
+            x = self.__stypeval.get(x, 'h1')
+            if y in stats:
+                if x in stats[y]:
+                    stats[y][x] += 1
+                else:
+                    stats[y][x] = 1
+            else:
+                stats[y] = {x: 1}
+        for i, j in stats.items():
+            stats[i]['time'] = sum([self.__cost.get(x) * y for x, y in j.items()])
+        return stats
