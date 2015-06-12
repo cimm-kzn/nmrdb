@@ -1,0 +1,24 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/fixes.html" as fixes %}
+{%- from 'navbar.html' import navbar %}
+
+{% block navbar %}
+    {{ navbar(localize) }}
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <!-- Main component for a primary marketing message or call to action -->
+        <div class="jumbotron">
+            {% block page %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+{% endblock %}

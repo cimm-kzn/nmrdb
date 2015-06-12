@@ -21,12 +21,34 @@
 __author__ = 'stsouko'
 from flask import render_template, request, session, flash, redirect, url_for
 from app import app
+from app.localization import eng, rus
+
+from flask_wtf import Form, RecaptchaField
+from flask_wtf.file import FileField
+from wtforms import StringField, HiddenField, ValidationError, RadioField,\
+    BooleanField, SubmitField
+from wtforms.validators import DataRequired
 
 
-@app.route('/')
-@app.route('/index')
+class Signin(Form):
+    name = StringField('User Name', description='enter your name.', validators=[DataRequired()])
+    login = StringField('Login', description='enter login name.', validators=[DataRequired()])
+    hidden_field = HiddenField('You cannot see this', description='Nope')
+    submit_button = SubmitField('Submit Form')
+    #recaptcha = RecaptchaField('A sample recaptcha field')
+    #checkbox_field = BooleanField('This is a checkbox', description='Checkboxes can be tricky.')
+
+    #def validate_hidden_field(form, field):
+    #    raise ValidationError('Always wrong')
+
+
+
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', title='Home', session=session)
+    form = Signin()
+    form.validate_on_submit()  # to get error messages to the browser
+    return render_template('signup.html', form=form, localize=eng)
 
 
 @app.route('/login', methods=['GET', 'POST'])

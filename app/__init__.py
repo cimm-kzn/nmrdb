@@ -20,7 +20,16 @@
 #
 __author__ = 'stsouko'
 from flask import Flask
+from flask_bootstrap import Bootstrap
+from flask_appconfig import AppConfig
 
-app = Flask(__name__)
 
+def create_app(configfile=None):
+    app = Flask(__name__)
+
+    AppConfig(app, configfile)
+    Bootstrap(app)
+    return app
+
+app = create_app(configfile='config.ini')
 from app import views
