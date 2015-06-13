@@ -26,15 +26,17 @@ from app.localization import eng, rus
 from flask_wtf import Form, RecaptchaField
 from flask_wtf.file import FileField
 from wtforms import StringField, HiddenField, ValidationError, RadioField,\
-    BooleanField, SubmitField
+    BooleanField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 
 
 class Signin(Form):
-    name = StringField('User Name', description='enter your name.', validators=[DataRequired()])
-    login = StringField('Login', description='enter login name.', validators=[DataRequired()])
-    hidden_field = HiddenField('You cannot see this', description='Nope')
+    name = StringField('User Name', validators=[DataRequired()])
+    login = StringField('Login', validators=[DataRequired()])
+    hidden_field = HiddenField('You cannot see this', description='Hide', id='hhhhhh')
+    laboratory = SelectField('Label', choices=[(1,11),(2,22)])
     submit_button = SubmitField('Submit Form')
+
     #recaptcha = RecaptchaField('A sample recaptcha field')
     #checkbox_field = BooleanField('This is a checkbox', description='Checkboxes can be tricky.')
 
