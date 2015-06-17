@@ -1,13 +1,11 @@
 {% extends "main.html" %}
-{% block content %}
-  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
-  <form action="{{ url_for('login') }}" method=post>
-    <dl>
-      <dt>Username:
-      <dd><input type=text name=username>
-      <dt>Password:
-      <dd><input type=password name=password>
-      <dd><input type=submit value=Login>
-    </dl>
-  </form>
+{% block page %}
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <h2>{{ localize.login }}</h2>
+            {{ wtf.quick_form(form, form_type='horizontal', button_map={'submit_button': 'primary'})}}
+        </div>
+        <div class="col-md-4"></div>
+    </div>
 {% endblock %}

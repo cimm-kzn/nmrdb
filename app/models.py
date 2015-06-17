@@ -34,6 +34,8 @@ class Users(db.Entity):
     passwd = Required(str)
     avatars = Set("Avatars", reverse="users")
     personalavatar = Optional("Avatars", reverse="user")
+    childavatars = Set("Avatars", reverse="parentuser")
+    active = Required(bool)
 
 
 class Tasks(db.Entity):
@@ -73,6 +75,7 @@ class Avatars(db.Entity):
     user = Optional(Users, reverse="personalavatar")
     tasks = Set(Tasks)
     users = Set(Users, reverse="avatars")
+    parentuser = Required(Users, reverse="childavatars")
     laboratory = Required(Laboratory)
 
 
@@ -99,8 +102,17 @@ class NmrDB:
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
-            user = Users(name=name, passwd=passwd)
-            Avatars(user=user, users=user, laboratory=lab)
+            user = Users(name=name, passwd=passwd, active=True)
+            Avatars(user=user, users=user, laboratory=lab, parentuser=user)
+            return True
+
+        return False
+
+    @db_session
+    def banuser(self, userid):
+        user = Users.get(id=userid)
+        if user:
+            user.active = False
             return True
 
         return False
@@ -126,11 +138,34 @@ class NmrDB:
         return False
 
     @db_session
+    def getavatars(self, user):
+        user = Users.get(id=user)
+        if user:
+            return {x.id: x.parentuser.name for x in user.avatars}
+
+        return False
+
+    @db_session
+    def gettasklist(self, user=0, avatar=0, status=None, page=1, pagesize=50):
+        user = Users.get(id=user)
+        avatar = Avatars.get(id=avatar)
+
+        if user:
+            q = select(x for x in Tasks if x.avatar in user.avatars and (status is None or x.status == status))
+        elif avatar:
+            q = select(x for x in Tasks if x.avatar == avatar and (status is None or x.status == status))
+        else:
+            q = select(x for x in Tasks if status is None or x.status == status)
+
+        return [dict(id=x.id, time=x.time, status=x.status, key=x.key) for x in q.order_by(
+            Tasks.id.desc()).page(page, pagesize=pagesize)]
+
+    @db_session
     def changeava(self, user):
         user = Users.get(id=user)
         if user:
-            lab = user.laboratory
-            user.personalavatar = Avatars(user=user, users=user, laboratory=lab)
+            lab = user.personalavatar.laboratory
+            user.personalavatar = Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
 
         return False
@@ -140,7 +175,7 @@ class NmrDB:
         user = Users.get(id=user)
         lab = Laboratory.get(id=lab)
         if user and lab:
-            user.personalavatar = Avatars(user=user, users=user, laboratory=lab)
+            user.personalavatar = Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
 
         return False
@@ -188,7 +223,17 @@ class NmrDB:
     def getuser(self, name):
         user = Users.get(name=name)
         if user:
-            return dict(id=user.id, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name)
+            return dict(id=user.id, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
+                        active=user.active)
+
+        return False
+
+    @db_session
+    def getuserbyid(self, userid):
+        user = Users.get(id=userid)
+        if user:
+            return dict(id=user.id, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
+                        active=user.active)
 
         return False
 
@@ -236,17 +281,6 @@ class NmrDB:
             return True
 
         return False
-
-    @db_session
-    def gettasklist(self, user=0, status=None, page=1, pagesize=50):
-        user = Users.get(id=user)
-        if user:
-            q = select(x for x in Tasks if (status is None or x.status == status) and x.avatar in user.avatars)
-        else:
-            q = select(x for x in Tasks if status is None or x.status == status)
-
-        return [dict(id=x.id, time=x.time, status=x.status, key=x.key) for x in q.order_by(
-            Tasks.id.desc()).page(page, pagesize=pagesize)]
 
     @db_session
     def getlabslist(self):

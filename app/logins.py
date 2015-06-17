@@ -19,22 +19,34 @@
 # MA 02110-1301, USA.
 #
 __author__ = 'stsouko'
-from flask import Flask
-from flask_bootstrap import Bootstrap
-from flask_appconfig import AppConfig
-from flask_login import LoginManager
-from app.models import NmrDB
+from app import login_manager, db
+from flask_login import UserMixin
 
-def create_app(configfile=None):
-    app = Flask(__name__)
-    AppConfig(app, configfile)
-    Bootstrap(app)
-    login_manager.init_app(app)
-    return app
+@login_manager.user_loader
+def load_user(userid):
+    user = db.getuserbyid(userid)
+    if user:
+        return User(user['name'], user['id'], user['active'])
 
-db = NmrDB()
-login_manager = LoginManager()
-app = create_app(configfile='config.ini')
-from app import views
+    return None
 
+class User(UserMixin):
+    def __init__(self, name, userid, active):
+        self.id = userid
+        self.name = name
+        self.active = active
+
+    def is_active(self):
+        # Here you should write whatever the code is
+        # that checks the database if your user is active
+        return self.active
+
+    def is_anonymous(self):
+        return False
+
+    def is_authenticated(self):
+        return True
+
+    def get_id(self):
+        return self.id
 

@@ -19,58 +19,73 @@
 # MA 02110-1301, USA.
 #
 __author__ = 'stsouko'
-from flask import render_template, request, session, flash, redirect, url_for
+from flask import render_template, session, redirect, url_for
 from app import app
 from app.localization import eng, rus
-
-from flask_wtf import Form, RecaptchaField
-from flask_wtf.file import FileField
-from wtforms import StringField, HiddenField, ValidationError, RadioField,\
-    BooleanField, SubmitField, SelectField
-from wtforms.validators import DataRequired
+from app import db
+from app.forms import Signin, Login, Newlab
+from app.logins import load_user, User
+from flask_login import login_user, login_required, logout_user, current_user
 
 
-class Signin(Form):
-    name = StringField('User Name', validators=[DataRequired()])
-    login = StringField('Login', validators=[DataRequired()])
-    hidden_field = HiddenField('You cannot see this', description='Hide', id='hhhhhh')
-    laboratory = SelectField('Label', choices=[(1,11),(2,22)])
-    submit_button = SubmitField('Submit Form')
+def getavatars():
+    if current_user.is_authenticated():
+        return dict(name=current_user.name, child=db.getavatars(current_user.get_id()).items())
 
-    #recaptcha = RecaptchaField('A sample recaptcha field')
-    #checkbox_field = BooleanField('This is a checkbox', description='Checkboxes can be tricky.')
-
-    #def validate_hidden_field(form, field):
-    #    raise ValidationError('Always wrong')
-
-
+    return None
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    form = Signin()
-    form.validate_on_submit()  # to get error messages to the browser
-    return render_template('signup.html', form=form, localize=eng)
+    return render_template('index.html', localize=eng, avatars=getavatars())
 
+@app.route('/newlab', methods=['GET', 'POST'])
+@login_required
+def newlab():
+    form = Newlab()
+    if form.validate_on_submit():
+        db.addlab(form.labname.data)
+        return redirect(url_for('index'))
+    return render_template('newlab.html', form=form, localize=eng, avatars=getavatars())
+
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    form = Signin()
+    if form.validate_on_submit():
+        if db.adduser(form.username.data, form.password.data, form.laboratory.data):
+            return redirect(url_for('login'))
+    return render_template('signup.html', form=form, localize=eng)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
-    if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid password'
-        else:
-            session['logged_in'] = True
-            session['user'] = app.config['USERNAME']
-            flash('You were logged in')
+    form = Login()
+    if form.validate_on_submit():
+        user = db.getuser(form.username.data)
+        if user and user['passwd'] == form.password.data:
+            login_user(User(user['name'], user['id'], user['active']), remember=True)
             return redirect(url_for('index'))
-    return render_template('login.html', error=error, title='Login')
-
+    return render_template('login.html', form=form, localize=eng)
 
 @app.route('/logout', methods=['GET'])
+@login_required
 def logout():
-    session['logged_in'] = False
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/about', methods=['GET'])
+def about():
     return redirect(url_for('index'))
 
+@app.route('/contacts', methods=['GET'])
+def contacts():
+    return redirect(url_for('index'))
+
+@app.route('/spectras/<filter>', methods=['GET'])
+@login_required
+def spectras(filter):
+    return redirect(url_for('index'))
+
+@app.route('/user/<name>', methods=['GET'])
+@login_required
+def user(name):
+    return redirect(url_for('index'))
