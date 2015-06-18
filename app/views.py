@@ -19,25 +19,26 @@
 # MA 02110-1301, USA.
 #
 __author__ = 'stsouko'
-from flask import render_template, session, redirect, url_for
+from flask import render_template, request, redirect, url_for
 from app import app
 from app.localization import eng, rus
 from app import db
-from app.forms import Signin, Login, Newlab
+from app.forms import Registration, Login, Newlab
 from app.logins import load_user, User
 from flask_login import login_user, login_required, logout_user, current_user
 
 
-def getavatars():
+def getavatars(sfilter='all', ufilter=None):
     if current_user.is_authenticated():
-        return dict(name=current_user.name, child=db.getavatars(current_user.get_id()).items())
+        return dict(name=current_user.name, child=db.getavatars(current_user.get_id()),
+                    ufilter=ufilter, sfilter=sfilter)
 
     return None
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', localize=eng, avatars=getavatars())
+    return render_template('index.html', localize=eng, data=getavatars())
 
 @app.route('/newlab', methods=['GET', 'POST'])
 @login_required
@@ -46,13 +47,13 @@ def newlab():
     if form.validate_on_submit():
         db.addlab(form.labname.data)
         return redirect(url_for('index'))
-    return render_template('newlab.html', form=form, localize=eng, avatars=getavatars())
+    return render_template('newlab.html', form=form, localize=eng)
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
-    form = Signin()
+    form = Registration()
     if form.validate_on_submit():
-        if db.adduser(form.username.data, form.password.data, form.laboratory.data):
+        if db.adduser(form.fullname.data, form.username.data, form.password.data, form.laboratory.data):
             return redirect(url_for('login'))
     return render_template('signup.html', form=form, localize=eng)
 
@@ -80,10 +81,11 @@ def about():
 def contacts():
     return redirect(url_for('index'))
 
-@app.route('/spectras/<filter>', methods=['GET'])
+@app.route('/spectras/<sfilter>', methods=['GET'])
 @login_required
-def spectras(filter):
-    return redirect(url_for('index'))
+def spectras(sfilter):
+    ufilter = request.args.get('user', None)
+    return render_template('index.html', localize=eng, data=getavatars(sfilter=sfilter, ufilter=ufilter))
 
 @app.route('/user/<name>', methods=['GET'])
 @login_required

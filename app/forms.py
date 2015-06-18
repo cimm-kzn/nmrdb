@@ -22,15 +22,29 @@ __author__ = 'stsouko'
 from app import db
 from flask_wtf import Form
 from wtforms import StringField, HiddenField, RadioField, validators, \
-    BooleanField, SubmitField, SelectField, PasswordField
+    BooleanField, SubmitField, SelectField, PasswordField, ValidationError
 
-class Signin(Form):
+class CheckExist(object):
+    def __init__(self):
+        self.message = 'user exist'
+
+    def __call__(self, form, field):
+        username = field.data
+        if db.getuser(username):
+            raise ValidationError(self.message)
+
+
+class Registration(Form):
+    def __init__(self):
+        super().__init__()
+        self.laboratory.choices = [(x['id'], x['name']) for x in db.getlabslist()]
+
     fullname = StringField('Full Name', validators=[validators.DataRequired()])
-    username = StringField('Login', [validators.DataRequired(), validators.Length(min=4, max=25)])
+    username = StringField('Login', [validators.DataRequired(), validators.Length(min=4, max=25), CheckExist()])
     password = PasswordField('New Password', [validators.DataRequired(),
                                               validators.EqualTo('confirm', message='Passwords must match')])
     confirm = PasswordField('Repeat Password', [validators.DataRequired()])
-    laboratory = SelectField('Laboratory', coerce=int, choices=[(x['id'], x['name']) for x in db.getlabslist()])
+    laboratory = SelectField('Laboratory', coerce=int)
     accept_tos = BooleanField('I accept the TOS', [validators.DataRequired()])
     submit_button = SubmitField('Submit')
 

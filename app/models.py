@@ -30,6 +30,7 @@ crc = CRC8()
 
 class Users(db.Entity):
     id = PrimaryKey(int, auto=True)
+    fullname = Required(str, unique=True)
     name = Required(str, unique=True)
     passwd = Required(str)
     avatars = Set("Avatars", reverse="users")
@@ -98,11 +99,11 @@ class NmrDB:
         self.__stypeval = {y: x for x, y in self.__stypekey.items()}
 
     @db_session
-    def adduser(self, name, passwd, lab):
+    def adduser(self, fullname, name, passwd, lab):
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
-            user = Users(name=name, passwd=passwd, active=True)
+            user = Users(fullname=fullname, name=name, passwd=passwd, active=True)
             Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
 
@@ -141,7 +142,7 @@ class NmrDB:
     def getavatars(self, user):
         user = Users.get(id=user)
         if user:
-            return {x.id: x.parentuser.name for x in user.avatars}
+            return [(x.id, x.parentuser.fullname, x.parentuser.name) for x in user.avatars]
 
         return False
 
@@ -223,7 +224,7 @@ class NmrDB:
     def getuser(self, name):
         user = Users.get(name=name)
         if user:
-            return dict(id=user.id, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
+            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
                         active=user.active)
 
         return False
@@ -232,7 +233,7 @@ class NmrDB:
     def getuserbyid(self, userid):
         user = Users.get(id=userid)
         if user:
-            return dict(id=user.id, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
+            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
                         active=user.active)
 
         return False

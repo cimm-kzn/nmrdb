@@ -26,7 +26,7 @@ from flask_login import UserMixin
 def load_user(userid):
     user = db.getuserbyid(userid)
     if user:
-        return User(user['name'], user['id'], user['active'])
+        return User(user['fullname'], user['id'], user['active'])
 
     return None
 

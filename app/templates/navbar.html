@@ -1,4 +1,4 @@
-{% macro navbar(localize, avatars=None) %}
+{% macro navbar(localize, data=None) %}
     <nav class="navbar navbar-default navbar-static-top">
         <div class="container">
             <ul class="nav navbar-nav">
@@ -6,28 +6,30 @@
                 <li><a href="{{ url_for('index') }}">{{ localize.home }}</a></li>
                 <li><a href="{{ url_for('about') }}">{{ localize.about }}</a></li>
                 <li><a href="{{ url_for('contacts') }}">{{ localize.contacts }}</a></li>
-                {% if avatars %}
+                {% if data %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ localize.filters }} <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="{{ url_for('spectras', filter='all') }}">all</a></li>
-                            <li><a href="{{ url_for('spectras', filter='new') }}">new</a></li>
-                            <li><a href="{{ url_for('spectras', filter='cmp') }}">completed</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter='all', user=data.ufilter or None) }}">all</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter='new', user=data.ufilter or None) }}">new</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter='cmp', user=data.ufilter or None) }}">completed</a></li>
                             <li class="divider"></li>
-                            <li class="dropdown-header">{{ localize.ava }}</li>
-                            {% for id, ava in avatars.child %}
-                                <li><a href="{{ url_for('spectras', filter='user', user=id) }}">{{ ava }}</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter=data.sfilter) }}">{{ localize.fclear }}</a></li>
+                            <li class="dropdown-header">{{ localize.sub }}</li>
+                            {% for id, ava, user in data.child %}
+                                <li><a href="{{ url_for('spectras', sfilter=data.sfilter, user=user) }}">{{ ava }} ({{ id }})</a></li>
                             {% endfor %}
                         </ul>
                     </li>
                 {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                {% if avatars %}
-                    <li><a href="{{ url_for('user', name=avatars.name) }}">{{ avatars.name }}</a></li>
-                    <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+                {% if data %}
+                    <li><a href="{{ url_for('user', name=data.name) }}">{{ data.name }}</a></li>
+                    <li><a href="{{ url_for('logout') }}">{{ localize.logout }}</a></li>
                 {% else %}
                     <li><a href="{{ url_for('login') }}">{{ localize.anon }}</a></li>
+                    <li><a href="{{ url_for('login') }}">{{ localize.login }}</a></li>
                 {% endif %}
             </ul>
         </div>
