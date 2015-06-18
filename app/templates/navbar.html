@@ -14,7 +14,9 @@
                             <li><a href="{{ url_for('spectras', sfilter='new', user=data.ufilter or None) }}">new</a></li>
                             <li><a href="{{ url_for('spectras', sfilter='cmp', user=data.ufilter or None) }}">completed</a></li>
                             <li class="divider"></li>
-                            <li><a href="{{ url_for('spectras', sfilter=data.sfilter) }}">{{ localize.fclear }}</a></li>
+                            {% if data.ufilter %}
+                                <li><a href="{{ url_for('spectras', sfilter=data.sfilter) }}">{{ localize.fclear }}</a></li>
+                            {% endif %}
                             <li class="dropdown-header">{{ localize.sub }}</li>
                             {% for id, ava, user in data.child %}
                                 <li><a href="{{ url_for('spectras', sfilter=data.sfilter, user=user) }}">{{ ava }} ({{ id }})</a></li>
