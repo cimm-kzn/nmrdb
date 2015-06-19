@@ -56,3 +56,7 @@ class Login(Form):
 class Newlab(Form):
     labname = StringField('Laboratory', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
+
+class Newtask(Form):
+    taskname = StringField('Laboratory', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')

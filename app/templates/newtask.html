@@ -1,0 +1,36 @@
+{% extends "main.html" %}
+
+{% block styles %}
+    {{super()}}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css') }}" type="text/css"/>
+{% endblock %}
+{% block scripts %}
+    {{super()}}
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-multiselect.js') }}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#example-getting-started').multiselect();
+        });
+    </script>
+{% endblock %}
+
+{% block page %}
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <h2>{{ localize.login }}</h2>
+            {{ wtf.quick_form(form, form_type='horizontal', button_map={'submit_button': 'primary'})}}
+        </div>
+        <div class="col-md-4">
+            <select id="example-getting-started" multiple="multiple">
+                <option value="cheese">Cheese</option>
+                <option value="tomatoes">Tomatoes</option>
+                <option value="mozarella">Mozzarella</option>
+                <option value="mushrooms">Mushrooms</option>
+                <option value="pepperoni">Pepperoni</option>
+                <option value="onions">Onions</option>
+            </select>
+        </div>
+    </div>
+{% endblock %}
