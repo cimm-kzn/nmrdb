@@ -5,6 +5,7 @@
         <div class="col-md-4">
             <h2>{{ localize.login }}</h2>
             {{ wtf.quick_form(form, form_type='horizontal', button_map={'submit_button': 'primary'})}}
+            <a href="{{ url_for('registration') }}">{{ localize.doreg }}</a>
         </div>
         <div class="col-md-4"></div>
     </div>

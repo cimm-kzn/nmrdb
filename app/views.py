@@ -54,9 +54,10 @@ def newlab():
 def newtask():
     form = Newtask()
     if form.validate_on_submit():
+        print('*'*20, form.structure.data)
         #db.addlab(form.taskname.data)
-        return redirect(url_for('index'))
-    return render_template('newtask.html', form=form, localize=eng)
+        return redirect(url_for('newtask'))
+    return render_template('newtask.html', form=form, localize=eng, data=getavatars())
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
@@ -64,7 +65,7 @@ def registration():
     if form.validate_on_submit():
         if db.adduser(form.fullname.data, form.username.data, form.password.data, form.laboratory.data):
             return redirect(url_for('login'))
-    return render_template('signup.html', form=form, localize=eng)
+    return render_template('registration.html', form=form, localize=eng)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

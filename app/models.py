@@ -98,6 +98,9 @@ class NmrDB:
         self.__stypekey = {y: x + 1 for x, y in enumerate(sorted(self.__cost))}
         self.__stypeval = {y: x for x, y in self.__stypekey.items()}
 
+    def gettasktypes(self):
+        return self.__stypeval
+
     @db_session
     def adduser(self, fullname, name, passwd, lab):
         user = Users.get(name=name)

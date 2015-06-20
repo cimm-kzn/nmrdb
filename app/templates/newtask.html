@@ -6,31 +6,44 @@
 {% endblock %}
 {% block scripts %}
     {{super()}}
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-multiselect.js') }}"></script>
     <script type="text/javascript">
+        function getKetcher() {
+			var frame = null;
+
+			if ('frames' in window && 'ketcherFrame' in window.frames)
+				frame = window.frames['ketcherFrame'];
+			else
+				return null;
+
+			if ('window' in frame)
+				return frame.window.ketcher;
+		}
+
+        function getMolfile() {
+			var ketcher = getKetcher();
+			if (ketcher)
+                $("#structure").val(ketcher.getMolfile());
+		}
+
         $(document).ready(function() {
-            $('#example-getting-started').multiselect();
+            $('#tasktypes').multiselect();
+            $('#taskform').on('submit', function(e){
+                e.preventDefault();
+                getMolfile();
+                this.submit();
+    });
         });
     </script>
 {% endblock %}
 
 {% block page %}
     <div class="row">
-        <div class="col-md-4"></div>
+        <iframe id="ketcherFrame" name="ketcherFrame" style="min-height:510px;width:100%;border-style:none" src="{{ url_for('static', filename='ketcher/ketcher.html') }}" scrolling="no"></iframe>
         <div class="col-md-4">
-            <h2>{{ localize.login }}</h2>
-            {{ wtf.quick_form(form, form_type='horizontal', button_map={'submit_button': 'primary'})}}
+            <h2>{{ localize.newtask }}</h2>
+            {{ wtf.quick_form(form, form_type='horizontal', id='taskform', button_map={'submit_button': 'primary'})}}
         </div>
-        <div class="col-md-4">
-            <select id="example-getting-started" multiple="multiple">
-                <option value="cheese">Cheese</option>
-                <option value="tomatoes">Tomatoes</option>
-                <option value="mozarella">Mozzarella</option>
-                <option value="mushrooms">Mushrooms</option>
-                <option value="pepperoni">Pepperoni</option>
-                <option value="onions">Onions</option>
-            </select>
-        </div>
+        <div class="col-md-8">how to use it.</div>
     </div>
 {% endblock %}
