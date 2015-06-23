@@ -49,14 +49,14 @@ def newlab():
         return redirect(url_for('index'))
     return render_template('newlab.html', form=form, localize=eng)
 
-@app.route('/changepos', methods=['GET', 'POST'])
+@app.route('/changeposi', methods=['GET', 'POST'])
 @login_required
-def changepos():
-    form = Changepos()
+def changeposi():
+    form = Changeposi()
     if form.validate_on_submit():
-        if db.changepos(current_user.get_id(), form.laboratory.data):
+        if db.changeposi(current_user.get_id(), form.laboratory.data):
             return redirect(url_for('index'))
-    return render_template('changepos.html', form=form, localize=eng)
+    return render_template('changeposi.html', form=form, localize=eng)
 
 @app.route('/changelab', methods=['GET', 'POST'])
 @login_required
