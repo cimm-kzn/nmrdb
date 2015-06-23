@@ -62,8 +62,8 @@ class Newtask(Form):
         super().__init__()
         self.tasktypes.choices = [(x, self.__cost.get(y, y)) for x, y in db.gettasktypes().items()]
 
-    __cost = dict(h1='1H', h1_p31=1H{31P}, p31=31P, p31_h1=P31{1H}, c13=13C, c13_h1=13C{1H}, c13_apt=13C_apt, c13_dept=13C_dept135, f19=19F, si29=29Si,
-                  b11=11B, noesy=NOESY, hsqc=HSQC, hmbc=HMBC, cosy=COSY)
+    __cost = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}', c13_apt='13C_apt', c13_dept='13C_dept135', f19='19F', si29='29Si',
+                  b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
     taskname = StringField('Title', [validators.DataRequired()])
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure')
