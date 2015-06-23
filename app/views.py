@@ -22,12 +22,15 @@ from functools import wraps
 
 __author__ = 'stsouko'
 from flask import render_template, request, redirect, url_for
-from app import app, login_manager
-from app.localization import eng, rus
+from app import app
+from app.localization import localization
 from app import db
 from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd
 from app.logins import User
 from flask_login import login_user, login_required, logout_user, current_user
+
+loc = localization()
+statuscode = dict(all=None, cmp=True, new=False)
 
 
 def admin_required(role=None):
@@ -47,7 +50,7 @@ def admin_required(role=None):
 def getavatars(sfilter='all', ufilter=None):
     if current_user.is_authenticated():
         return dict(name=current_user.name, child=db.getavatars(current_user.get_id()),
-                    ufilter=ufilter, sfilter=sfilter)
+                    ufilter=ufilter, sfilter=sfilter, login=current_user.get_login())
 
     return None
 
@@ -55,7 +58,7 @@ def getavatars(sfilter='all', ufilter=None):
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', localize=eng, data=getavatars())
+    return render_template('index.html', localize=loc, data=getavatars())
 
 
 @app.route('/newtask', methods=['GET', 'POST'])
@@ -63,10 +66,17 @@ def index():
 def newtask():
     form = Newtask()
     if form.validate_on_submit():
-        print('*' * 20, form.structure.data)
-        # db.addlab(form.taskname.data)
-        return redirect(url_for('newtask'))
-    return render_template('newtask.html', form=form, localize=eng, data=getavatars())
+        tasktypes = dict.fromkeys([db.gettasktypes().get(x, 'h1') for x in form.tasktypes.data], True)
+        key = db.addtask(current_user.get_id(), structure=form.structure.data, title=form.taskname.data, **tasktypes)
+        if key:
+            return redirect(url_for('newtaskcode', code=key))
+    return render_template('newtask.html', form=form, localize=loc, data=getavatars())
+
+
+@app.route('/newtaskcode/<code>', methods=['GET'])
+@login_required
+def newtaskcode(code):
+    return render_template('newtaskcode.html', code=code, localize=loc, data=getavatars())
 
 
 @app.route('/about', methods=['GET'])
@@ -83,13 +93,29 @@ def contacts():
 @login_required
 def spectras(sfilter):
     ufilter = request.args.get('user', None)
-    return render_template('index.html', localize=eng, data=getavatars(sfilter=sfilter, ufilter=ufilter))
+    spectras = db.gettasklist(user=0, avatar=0, status=statuscode.get(sfilter.lower()), page=1, pagesize=50)
+    return render_template('spectras.html', localize=loc, data=getavatars(sfilter=sfilter, ufilter=ufilter))
+
+
+@app.route('/user/', methods=['GET'])
+@app.route('/user', methods=['GET'])
+@login_required
+def getuser():
+    return redirect(url_for('user', name=current_user.get_login()))
 
 
 @app.route('/user/<name>', methods=['GET'])
 @login_required
 def user(name):
-    return redirect(url_for('index'))
+    user = db.getuser(name)
+    if not user:
+        return redirect(url_for('user', name=current_user.get_login()))
+
+    if current_user.get_login() == name:
+        user['current'] = True
+    else:
+        pass
+    return render_template('user.html', localize=loc, data=getavatars(), user=user)
 
 
 @app.route('/registration', methods=['GET', 'POST'])
@@ -98,7 +124,7 @@ def registration():
     if form.validate_on_submit():
         if db.adduser(form.fullname.data, form.username.data, form.password.data, form.laboratory.data):
             return redirect(url_for('login'))
-    return render_template('registration.html', form=form, localize=eng)
+    return render_template('registration.html', form=form, localize=loc)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -106,10 +132,10 @@ def login():
     form = Login()
     if form.validate_on_submit():
         user = db.getuser(form.username.data)
-        if db.chkpwd(user['id'], form.password.data):
-            login_user(User(user['name'], user['id'], user['active'], user['role']), remember=True)
+        if user and db.chkpwd(user['id'], form.password.data):
+            login_user(User(**user), remember=True)
             return redirect(url_for('index'))
-    return render_template('login.html', form=form, localize=eng)
+    return render_template('login.html', form=form, localize=loc)
 
 
 @app.route('/logout', methods=['GET'])
@@ -125,8 +151,8 @@ def changeava():
     form = Changeava()
     if form.validate_on_submit():
         if db.changeava(current_user.get_id()):
-            return redirect(url_for('index'))
-    return render_template('newava.html', form=form, localize=eng)
+            return redirect(url_for('user', name=current_user.get_login()))
+    return render_template('newava.html', form=form, localize=loc, data=getavatars())
 
 
 @app.route('/changelab', methods=['GET', 'POST'])
@@ -135,16 +161,35 @@ def changelab():
     form = Changelab()
     if form.validate_on_submit():
         if db.changelab(current_user.get_id(), form.laboratory.data):
-            return redirect(url_for('index'))
-    return render_template('changelab.html', form=form, localize=eng)
+            return redirect(url_for('user', name=current_user.get_login()))
+    return render_template('changelab.html', form=form, localize=loc, data=getavatars())
 
 
-# changepwd password
+@app.route('/changepwd', methods=['GET', 'POST'])
+@login_required
+def changepwd():
+    form = Changepwd()
+    if form.validate_on_submit():
+        if db.changepasswd(current_user.get_id(), form.newpassword.data):
+            return redirect(url_for('user', name=current_user.get_login()))
+    return render_template('newpwd.html', form=form, localize=loc, data=getavatars())
 
-# share avatar
+
+@app.route('/shareava', methods=['GET', 'POST'])
+@login_required
+def shareava():
+    form = ChangeChief()
+    if form.validate_on_submit():
+        if db.shareava(current_user.get_id(), db.getuser(form.name.data)['id']):
+            return redirect(url_for('user', name=current_user.get_login()))
+    return render_template('setchief.html', form=form, localize=loc, data=getavatars())
 
 
-# ADMIN SECTION
+''' ADMIN SECTION
+    DANGEROUS code
+'''
+
+
 @app.route('/newlab', methods=['GET', 'POST'])
 @login_required
 @admin_required('admin')
@@ -152,5 +197,5 @@ def newlab():
     form = Newlab()
     if form.validate_on_submit():
         db.addlab(form.labname.data)
-        return redirect(url_for('index'))
-    return render_template('newlab.html', form=form, localize=eng)
+        return redirect(url_for('user', name=current_user.get_login()))
+    return render_template('newlab.html', form=form, localize=loc, data=getavatars())

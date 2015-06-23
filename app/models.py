@@ -88,7 +88,6 @@ class Spectras(db.Entity):
     file = Required(str)
     task = Required(Tasks)
 
-
 sql_debug(True)
 db.generate_mapping(create_tables=True)
 
@@ -99,6 +98,7 @@ class NmrDB:
                            b11=1, noesy=60, hsqc=60, hmbc=60, cosy=60)
         self.__stypekey = {y: x + 1 for x, y in enumerate(sorted(self.__cost))}
         self.__stypeval = {y: x for x, y in self.__stypekey.items()}
+        self.__gettasknumb = self.__tasknumb()
 
     def gettasktypes(self):
         return self.__stypeval
@@ -210,10 +210,17 @@ class NmrDB:
     def __gettaskkey(key):
         return '%s%d' % (key, crc.calc(key) % 10)
 
+    @staticmethod
+    def __tasknumb():
+        i = 0
+        while True:
+            i += 1
+            yield i % 10000
+
     @db_session
     def addtask(self, user, **kwargs):
         user = Users.get(id=user)
-        key = self.__gettaskkey('%04d' % randint(1, 9999))
+        key = self.__gettaskkey('%04d' % next(self.__gettasknumb))
         if user:
             Tasks(avatar=user.personalavatar, time=int(time.time()), key=key, status=False,
                   title=kwargs.get("title", ''), structure=kwargs.get("structure"),

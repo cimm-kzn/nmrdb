@@ -52,6 +52,16 @@ class CheckPwd(object):
         if db.chkpwd(current_user.get_id(), passwd):
             raise ValidationError(self.message)
 
+class CheckMol(object):
+    def __init__(self):
+        self.message = 'No structure'
+
+    def __call__(self, form, field):
+
+        if '  0  0  0     0  0            999 V2000' in field.data:
+            raise ValidationError(self.message)
+
+
 class Registration(Form):
     def __init__(self):
         super().__init__()
@@ -92,7 +102,7 @@ class Changeava(Form):
     submit_button = SubmitField('Enter')
 
 class ChangeChief(Form):
-    fullname = StringField('User Name', validators=[validators.DataRequired(), CheckNotExist()])
+    name = StringField('User Name for share', validators=[validators.DataRequired(), CheckNotExist()])
     password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 
@@ -111,5 +121,5 @@ class Newtask(Form):
 
     taskname = StringField('Title', [validators.DataRequired()])
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
-    structure = HiddenField('structure')
+    structure = HiddenField('structure', [validators.DataRequired(), CheckMol()])
     submit_button = SubmitField('Enter')

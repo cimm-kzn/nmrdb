@@ -1,0 +1,27 @@
+{% extends "main.html" %}
+{% block page %}
+    <div class="row">
+        <div class="col-md-8">
+            <h2>{{ user.fullname }}</h2>
+            <p>{{ user.lab }}</p>
+        </div>
+        <div class="col-md-4">
+            {% if user.current %}
+                <ul>
+                    <li><a href="{{ url_for('changeava') }}">{{ localize.newava }}</a></li>
+                    <li><a href="{{ url_for('changelab') }}">{{ localize.newlab }}</a></li>
+                    <li><a href="{{ url_for('changepwd') }}">{{ localize.newpwd }}</a></li>
+                    <li><a href="{{ url_for('shareava') }}">{{ localize.setchief }}</a></li>
+                </ul>
+                {% if user.role == "admin" %}
+                    <h2>ADMIN</h2>
+                    <ul>
+                        <li><a href="{{ url_for('newlab') }}">{{ localize.newlab }}</a></li>
+                        <li>ban user</li>
+                        <li>change role</li>
+                    </ul>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

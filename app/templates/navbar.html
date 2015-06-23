@@ -28,7 +28,7 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if data %}
-                    <li><a href="{{ url_for('user', name=data.name) }}">{{ data.name }}</a></li>
+                    <li><a href="{{ url_for('user', name=data.login) }}">{{ data.name }}</a></li>
                     <li><a href="{{ url_for('logout') }}">{{ localize.logout }}</a></li>
                 {% else %}
                     <li><a href="{{ url_for('login') }}">{{ localize.anon }}</a></li>

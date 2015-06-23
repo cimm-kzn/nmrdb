@@ -26,21 +26,21 @@ from flask_login import UserMixin
 def load_user(userid):
     user = db.getuserbyid(userid)
     if user:
-        return User(user['fullname'], user['id'], user['active'], user['role'])
+        return User(**user)
 
     return None
 
 class User(UserMixin):
-    def __init__(self, name, userid, active, role):
-        self.id = userid
-        self.name = name
-        self.active = active
-        self.__role = role
+    def __init__(self, **kwargs):
+        self.__id = kwargs['id']
+        self.name = kwargs['fullname']
+        self.__login = kwargs['name']
+        self.__active = kwargs['active']
+        self.__role = kwargs['role']
+        self.__lab = kwargs['lab']
 
     def is_active(self):
-        # Here you should write whatever the code is
-        # that checks the database if your user is active
-        return self.active
+        return self.__active
 
     def is_anonymous(self):
         return False
@@ -49,8 +49,14 @@ class User(UserMixin):
         return True
 
     def get_id(self):
-        return self.id
+        return self.__id
 
     def get_role(self):
         return self.__role
+
+    def get_login(self):
+        return self.__login
+
+    def get_lab(self):
+        return self.__lab
 
