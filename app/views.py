@@ -56,7 +56,7 @@ def changeava():
     if form.validate_on_submit():
         if db.changeava(current_user.get_id()):
             return redirect(url_for('index'))
-    return render_template('changepos.html', form=form, localize=eng)
+    return render_template('newava.html', form=form, localize=eng)
 
 @app.route('/changelab', methods=['GET', 'POST'])
 @login_required
