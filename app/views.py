@@ -34,11 +34,9 @@ def admin_required(role=None):
     def wrapper(fn):
         @wraps(fn)
         def decorated_view(*args, **kwargs):
-            if not current_user.is_authenticated():
-                return login_manager.unauthorized()
             urole = current_user.get_role()
             if role and urole != role:
-                return login_manager.unauthorized()
+                return redirect(url_for('index'))
             return fn(*args, **kwargs)
 
         return decorated_view
@@ -108,7 +106,7 @@ def login():
     form = Login()
     if form.validate_on_submit():
         user = db.getuser(form.username.data)
-        if user and user['passwd'] == form.password.data:
+        if db.chkpwd(user['id'], form.password.data):
             login_user(User(user['name'], user['id'], user['active'], user['role']), remember=True)
             return redirect(url_for('index'))
     return render_template('login.html', form=form, localize=eng)
@@ -149,6 +147,7 @@ def changelab():
 # ADMIN SECTION
 @app.route('/newlab', methods=['GET', 'POST'])
 @login_required
+@admin_required('admin')
 def newlab():
     form = Newlab()
     if form.validate_on_submit():
