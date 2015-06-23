@@ -24,7 +24,7 @@ import time
 from app.lib.crc8 import CRC8
 from random import randint
 
-db = Database("sqlite", "/tmp/database.sqlite", create_db=True)
+db = Database("sqlite", "../database.sqlite", create_db=True)
 crc = CRC8()
 
 
@@ -224,11 +224,20 @@ class NmrDB:
         return False
 
     @db_session
+    def getuserbyname(self, name):
+        user = Users.get(fullname=name)
+        if user:
+            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
+                        lab=user.personalavatar.laboratory.name, active=user.active)
+
+        return False
+
+    @db_session
     def getuser(self, name):
         user = Users.get(name=name)
         if user:
-            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
-                        active=user.active)
+            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
+                        lab=user.personalavatar.laboratory.name, active=user.active)
 
         return False
 
@@ -236,8 +245,8 @@ class NmrDB:
     def getuserbyid(self, userid):
         user = Users.get(id=userid)
         if user:
-            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd, lab=user.personalavatar.laboratory.name,
-                        active=user.active)
+            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
+                        lab=user.personalavatar.laboratory.name, active=user.active)
 
         return False
 

@@ -23,7 +23,7 @@ from flask import render_template, request, redirect, url_for
 from app import app
 from app.localization import eng, rus
 from app import db
-from app.forms import Registration, Login, Newlab, Newtask
+from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd
 from app.logins import load_user, User
 from flask_login import login_user, login_required, logout_user, current_user
 
@@ -48,6 +48,17 @@ def newlab():
         db.addlab(form.labname.data)
         return redirect(url_for('index'))
     return render_template('newlab.html', form=form, localize=eng)
+
+#тут
+
+@app.route('/changelab', methods=['GET', 'POST'])
+@login_required
+def changelab():
+    form = Changelab()
+    if form.validate_on_submit():
+        if db.changelab(current_user.get_id(), form.laboratory.data):
+            return redirect(url_for('index'))
+    return render_template('changelab.html', form=form, localize=eng)
 
 @app.route('/newtask', methods=['GET', 'POST'])
 @login_required

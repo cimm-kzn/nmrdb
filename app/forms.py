@@ -26,7 +26,7 @@ from wtforms import StringField, HiddenField, RadioField, validators, \
 
 class CheckExist(object):
     def __init__(self):
-        self.message = 'user exist'
+        self.message = 'User exist'
 
     def __call__(self, form, field):
         username = field.data
@@ -41,8 +41,8 @@ class Registration(Form):
 
     fullname = StringField('Full Name', validators=[validators.DataRequired()])
     username = StringField('Login', [validators.DataRequired(), validators.Length(min=4, max=25), CheckExist()])
-    password = PasswordField('New Password', [validators.DataRequired(),
-                                              validators.EqualTo('confirm', message='Passwords must match')])
+    password = PasswordField('Password', [validators.DataRequired(),
+                                          validators.EqualTo('confirm', message='Passwords must match')])
     confirm = PasswordField('Repeat Password', [validators.DataRequired()])
     laboratory = SelectField('Laboratory', coerce=int)
     accept_tos = BooleanField('I accept the TOS', [validators.DataRequired()])
@@ -50,6 +50,31 @@ class Registration(Form):
 
 class Login(Form):
     username = StringField('Login', [validators.DataRequired()])
+    password = PasswordField('Password', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')
+
+class Changelab(Form):
+    def __init__(self):
+        super().__init__()
+        self.laboratory.choices = [(x['id'], x['name']) for x in db.getlabslist()]
+
+    laboratory = SelectField('Laboratory', [validators.DataRequired()], coerce=int)
+    password = PasswordField('Password', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')
+
+class Changepwd(Form):
+    password = PasswordField('Password', [validators.DataRequired()])
+    newpassword = PasswordField('New Password', [validators.DataRequired(),
+                                                 validators.EqualTo('confirm', message='Passwords must match')])
+    confirm = PasswordField('Repeat Password', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')
+
+class Changeava(Form):
+    password = PasswordField('Password', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')
+
+class ChangeChief(Form):
+    fullname = StringField('Full Name', validators=[validators.DataRequired()])
     password = PasswordField('Password', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
 
@@ -62,8 +87,10 @@ class Newtask(Form):
         super().__init__()
         self.tasktypes.choices = [(x, self.__cost.get(y, y)) for x, y in db.gettasktypes().items()]
 
-    __cost = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}', c13_apt='13C_apt', c13_dept='13C_dept135', f19='19F', si29='29Si',
+    __cost = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}',
+                  c13_apt='13C_apt', c13_dept='13C_dept135', f19='19F', si29='29Si',
                   b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
+
     taskname = StringField('Title', [validators.DataRequired()])
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure')
