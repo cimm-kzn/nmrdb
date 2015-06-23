@@ -34,6 +34,15 @@ class CheckExist(object):
         if db.getuser(username):
             raise ValidationError(self.message)
 
+class CheckNotExist(object):
+    def __init__(self):
+        self.message = 'User not found'
+
+    def __call__(self, form, field):
+        username = field.data
+        if not db.getuser(username):
+            raise ValidationError(self.message)
+
 class CheckPwd(object):
     def __init__(self):
         self.message = 'Wrong password'
@@ -83,7 +92,7 @@ class Changeava(Form):
     submit_button = SubmitField('Enter')
 
 class ChangeChief(Form):
-    fullname = StringField('Full Name', validators=[validators.DataRequired()])
+    fullname = StringField('User Name', validators=[validators.DataRequired(), CheckNotExist()])
     password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 

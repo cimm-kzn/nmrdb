@@ -26,15 +26,16 @@ from flask_login import UserMixin
 def load_user(userid):
     user = db.getuserbyid(userid)
     if user:
-        return User(user['fullname'], user['id'], user['active'])
+        return User(user['fullname'], user['id'], user['active'], user['role'])
 
     return None
 
 class User(UserMixin):
-    def __init__(self, name, userid, active):
+    def __init__(self, name, userid, active, role):
         self.id = userid
         self.name = name
         self.active = active
+        self.__role = role
 
     def is_active(self):
         # Here you should write whatever the code is
@@ -49,4 +50,7 @@ class User(UserMixin):
 
     def get_id(self):
         return self.id
+
+    def get_role(self):
+        return self.__role
 

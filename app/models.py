@@ -38,6 +38,7 @@ class Users(db.Entity):
     personalavatar = Optional("Avatars", reverse="user")
     childavatars = Set("Avatars", reverse="parentuser")
     active = Required(bool)
+    role = Required(str)
 
 
 class Tasks(db.Entity):
@@ -103,12 +104,12 @@ class NmrDB:
         return self.__stypeval
 
     @db_session
-    def adduser(self, fullname, name, passwd, lab):
+    def adduser(self, fullname, name, passwd, lab, role="common"):
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
             passwd = bcrypt.generate_password_hash(passwd)
-            user = Users(fullname=fullname, name=name, passwd=passwd, active=True)
+            user = Users(fullname=fullname, name=name, passwd=passwd, active=True, role=role)
             Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
 
@@ -119,6 +120,15 @@ class NmrDB:
         user = Users.get(id=userid)
         if user:
             user.active = False
+            return True
+
+        return False
+
+    @db_session
+    def changeuserrole(self, userid, role):
+        user = Users.get(id=userid)
+        if user:
+            user.role = role
             return True
 
         return False
@@ -231,7 +241,7 @@ class NmrDB:
         user = Users.get(fullname=name)
         if user:
             return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
-                        lab=user.personalavatar.laboratory.name, active=user.active)
+                        lab=user.personalavatar.laboratory.name, active=user.active, role=user.role)
 
         return False
 
@@ -240,7 +250,7 @@ class NmrDB:
         user = Users.get(name=name)
         if user:
             return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
-                        lab=user.personalavatar.laboratory.name, active=user.active)
+                        lab=user.personalavatar.laboratory.name, active=user.active, role=user.role)
 
         return False
 
@@ -249,7 +259,7 @@ class NmrDB:
         user = Users.get(id=userid)
         if user:
             return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
-                        lab=user.personalavatar.laboratory.name, active=user.active)
+                        lab=user.personalavatar.laboratory.name, active=user.active, role=user.role)
 
         return False
 
