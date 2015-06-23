@@ -23,6 +23,7 @@ from app import db
 from flask_wtf import Form
 from wtforms import StringField, HiddenField, RadioField, validators, \
     BooleanField, SubmitField, SelectField, PasswordField, ValidationError, SelectMultipleField
+from flask_login import current_user
 
 class CheckExist(object):
     def __init__(self):
@@ -33,6 +34,14 @@ class CheckExist(object):
         if db.getuser(username):
             raise ValidationError(self.message)
 
+class CheckPwd(object):
+    def __init__(self):
+        self.message = 'Wrong password'
+
+    def __call__(self, form, field):
+        passwd = field.data
+        if db.chkpwd(current_user.get_id(), passwd):
+            raise ValidationError(self.message)
 
 class Registration(Form):
     def __init__(self):
@@ -59,23 +68,23 @@ class Changelab(Form):
         self.laboratory.choices = [(x['id'], x['name']) for x in db.getlabslist()]
 
     laboratory = SelectField('Laboratory', [validators.DataRequired()], coerce=int)
-    password = PasswordField('Password', [validators.DataRequired()])
+    password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 
 class Changepwd(Form):
-    password = PasswordField('Password', [validators.DataRequired()])
+    password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     newpassword = PasswordField('New Password', [validators.DataRequired(),
                                                  validators.EqualTo('confirm', message='Passwords must match')])
     confirm = PasswordField('Repeat Password', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
 
 class Changeava(Form):
-    password = PasswordField('Password', [validators.DataRequired()])
+    password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 
 class ChangeChief(Form):
     fullname = StringField('Full Name', validators=[validators.DataRequired()])
-    password = PasswordField('Password', [validators.DataRequired()])
+    password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 
 class Newlab(Form):

@@ -23,19 +23,25 @@ from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_appconfig import AppConfig
 from flask_login import LoginManager
-from app.models import NmrDB
+from flask.ext.bcrypt import Bcrypt
+
+login_manager = LoginManager()
 
 def create_app(configfile=None):
     app = Flask(__name__)
     AppConfig(app, configfile)
     Bootstrap(app)
     login_manager.init_app(app)
+    bcrypt = Bcrypt(app)
     login_manager.login_view = 'login'
-    return app
+    return app, bcrypt
 
+
+app, bcrypt = create_app(configfile='config.ini')
+
+from app.models import NmrDB
 db = NmrDB()
-login_manager = LoginManager()
-app = create_app(configfile='config.ini')
+
 from app import views
 
 

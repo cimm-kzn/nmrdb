@@ -23,6 +23,7 @@ from pony.orm import *
 import time
 from app.lib.crc8 import CRC8
 from random import randint
+from app import bcrypt
 
 db = Database("sqlite", "../database.sqlite", create_db=True)
 crc = CRC8()
@@ -106,6 +107,7 @@ class NmrDB:
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
+            passwd = bcrypt.generate_password_hash(passwd)
             user = Users(fullname=fullname, name=name, passwd=passwd, active=True)
             Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
@@ -188,6 +190,7 @@ class NmrDB:
     def changepasswd(self, user, passwd):
         user = Users.get(id=user)
         if user:
+            passwd = bcrypt.generate_password_hash(passwd)
             user.passwd = passwd
             return True
 
@@ -249,6 +252,10 @@ class NmrDB:
                         lab=user.personalavatar.laboratory.name, active=user.active)
 
         return False
+
+    @db_session
+    def chkpwd(self, userid, pwd):
+        return bcrypt.check_password_hash(select(x.passwd for x in Users if x.id == userid).first(), pwd)
 
     @db_session
     def gettaskbykey(self, key):
