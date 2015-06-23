@@ -60,9 +60,11 @@ class Newlab(Form):
 class Newtask(Form):
     def __init__(self):
         super().__init__()
-        self.tasktypes.choices = db.gettasktypes().items()
+        self.tasktypes.choices = [(x, self.__cost.get(y, y)) for x, y in db.gettasktypes().items()]
 
+    __cost = dict(h1='1H', h1_p31=1, p31=5, p31_h1=1, c13=60, c13_h1=60, c13_apt=60, c13_dept=60, f19=1, si29=1,
+                  b11=1, noesy=60, hsqc=60, hmbc=60, cosy=60)
     taskname = StringField('Title', [validators.DataRequired()])
-    tasktypes = SelectMultipleField('Tasks', coerce=int)
+    tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure')
     submit_button = SubmitField('Enter')
