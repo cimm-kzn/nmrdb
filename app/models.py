@@ -22,7 +22,7 @@ __author__ = 'stsouko'
 from pony.orm import *
 import time
 from app.lib.crc8 import CRC8
-from random import randint
+import datetime
 from app import bcrypt
 
 db = Database("sqlite", "../database.sqlite", create_db=True)
@@ -87,6 +87,7 @@ class Spectras(db.Entity):
     stype = Required(int)
     file = Required(str)
     task = Required(Tasks)
+
 
 sql_debug(True)
 db.generate_mapping(create_tables=True)
@@ -162,9 +163,9 @@ class NmrDB:
         return False
 
     @db_session
-    def gettasklist(self, user=0, avatar=0, status=None, page=1, pagesize=50):
+    def gettasklist(self, user=0, avatar='', status=None, page=1, pagesize=50):
         user = Users.get(id=user)
-        avatar = Avatars.get(id=avatar)
+        avatar = select(x for x in Avatars if x.user.name == avatar).first()  # Avatars.get(id=avatar)
 
         if user:
             q = select(x for x in Tasks if x.avatar in user.avatars and (status is None or x.status == status))
@@ -173,8 +174,9 @@ class NmrDB:
         else:
             q = select(x for x in Tasks if status is None or x.status == status)
 
-        return [dict(id=x.id, time=x.time, status=x.status, key=x.key) for x in q.order_by(
-            Tasks.id.desc()).page(page, pagesize=pagesize)]
+        return [dict(id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
+                     status=x.status, key=x.key, user=x.avatar.parentuser.fullname) for x in
+                q.order_by(Tasks.id.desc()).page(page, pagesize=pagesize)]
 
     @db_session
     def changeava(self, user):
@@ -277,16 +279,21 @@ class NmrDB:
     @db_session
     def gettaskbykey(self, key):
         if key == self.__gettaskkey(key[:4]):
-            task = Tasks.get(key=key)
+            task = select(x for x in Tasks if x.key == key).order_by(Tasks.id.desc()).first()
             if task:
                 return self.__gettask(task)
 
         return False
 
     @db_session
-    def gettask(self, task):
+    def gettask(self, task, user=None):
         task = Tasks.get(id=task)
+
         if task:
+            if user:
+                user = Users.get(id=user)
+                if not (user and task.avatar in user.avatars):
+                    return False
             return self.__gettask(task)
 
         return False
@@ -335,7 +342,8 @@ class NmrDB:
     @db_session
     def getstatistics(self, stime=0):
         stats = {}
-        for x, y, z in left_join((x.stype, x.task.avatar.laboratory.name, x.task.time) for x in Spectras if x.task.time > stime):
+        for x, y, z in left_join(
+                (x.stype, x.task.avatar.laboratory.name, x.task.time) for x in Spectras if x.task.time > stime):
             x = self.__stypeval.get(x, 'h1')
             if y in stats:
                 if x in stats[y]:

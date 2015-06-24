@@ -1,8 +1,15 @@
 {% extends "main.html" %}
 {% block page %}
     <div class="row">
-        <div class="col-md-4"></div>
-        <div class="col-md-4"></div>
-        <div class="col-md-4"></div>
+        <div class="col-md-3"><h3>{{ localize.user }}</h3></div>
+        <div class="col-md-3"><h3>{{ localize.time }}</h3></div>
+        <div class="col-md-3"><h3>{{ localize.status }}</h3></div>
+        <div class="col-md-3"><h3>{{ localize.taskcode }}</h3></div>
+        {% for x in slist %}
+            <div class="col-md-3">{{ x.user }}</div>
+            <div class="col-md-3">{{ x.time }}</div>
+            <div class="col-md-3">{{ x.status }}</div>
+            <div class="col-md-3"><a href="{{ url_for('showtask', task=x.id) }}">{{ x.key }}</a></div>
+        {% endfor %}
     </div>
 {% endblock %}

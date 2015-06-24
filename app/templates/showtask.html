@@ -1,0 +1,36 @@
+{% extends "main.html" %}
+{% block scripts %}
+    {{super()}}
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/prototype.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/raphael.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/common.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/vec2.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/set.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/map.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/pool.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/element.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/struct.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/molfile.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/sgroup.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/struct_valence.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/dfs.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/chem/smiles.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/rnd/visel.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/rnd/restruct.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/rnd/restruct_rendering.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/rnd/render.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/ketcher.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/ui/actions.js') }}"></script>
+    <script type="text/javascript">
+        document.observe('dom:loaded', function(){
+            ketcher.showMolfileOpts('structure', $('structure').innerHTML, 100, {'autoScale':true, 'ignoreMouseEvents':true});
+        });
+    </script>
+{% endblock %}
+{% block page %}
+    <div class="row">
+        <div class="col-md-4" id="structure" style="min-height:300px">{{ task.structure }}</div>
+        <div class="col-md-4">{{ task }}</div>
+        <div class="col-md-4"></div>
+    </div>
+{% endblock %}

@@ -37,8 +37,7 @@ def admin_required(role=None):
     def wrapper(fn):
         @wraps(fn)
         def decorated_view(*args, **kwargs):
-            urole = current_user.get_role()
-            if role and urole != role:
+            if role and current_user.get_role() != role:
                 return redirect(url_for('index'))
             return fn(*args, **kwargs)
 
@@ -60,6 +59,9 @@ def getavatars(sfilter='all', ufilter=None):
 def index():
     return render_template('index.html', localize=loc, data=getavatars())
 
+''' TASK
+    pages
+'''
 
 @app.route('/newtask', methods=['GET', 'POST'])
 @login_required
@@ -79,6 +81,47 @@ def newtaskcode(code):
     return render_template('newtaskcode.html', code=code, localize=loc, data=getavatars())
 
 
+@app.route('/spectras/<sfilter>', methods=['GET'])
+@login_required
+def spectras(sfilter):
+    sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
+    ufilter = request.args.get('user', None)
+    page = int(request.args.get('page', 1))
+    if ufilter:
+        ''' спектры отсортированные по аватарам.
+        '''
+        user = 0
+        access = [x[2] for x in db.getavatars(current_user.get_id())]
+        avatar = ufilter if ufilter in access or current_user.get_role() in ['admin', 'op'] else ''
+    elif current_user.get_role() in ['admin', 'op']:
+        ''' админский доступ ко все спектрам. нужно только для добавления в обработку по сути.
+        '''
+        user = 0
+        avatar = ''
+    else:
+        ''' все доступные пользователю спектры от всех шар.
+        '''
+        user = current_user.get_id()
+        avatar = ''
+
+    spectras = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
+    return render_template('spectras.html', localize=loc,
+                           data=getavatars(sfilter=sfilter, ufilter=ufilter), slist=spectras)
+
+
+@app.route('/showtask/<int:task>', methods=['GET', 'POST'])
+@login_required
+def showtask(task):
+    task = db.gettask(task, user=None if current_user.get_role() in ['admin', 'op'] else current_user.get_id())
+    if task:
+        return render_template('showtask.html', localize=loc, data=getavatars(), task=task)
+    else:
+        return redirect(url_for('spectras', sfilter='all'))
+
+''' COMMON
+    pages
+'''
+
 @app.route('/about', methods=['GET'])
 def about():
     return redirect(url_for('index'))
@@ -89,33 +132,18 @@ def contacts():
     return redirect(url_for('index'))
 
 
-@app.route('/spectras/<sfilter>', methods=['GET'])
-@login_required
-def spectras(sfilter):
-    ufilter = request.args.get('user', None)
-    spectras = db.gettasklist(user=0, avatar=0, status=statuscode.get(sfilter.lower()), page=1, pagesize=50)
-    return render_template('spectras.html', localize=loc, data=getavatars(sfilter=sfilter, ufilter=ufilter))
-
-
 @app.route('/user/', methods=['GET'])
-@app.route('/user', methods=['GET'])
-@login_required
-def getuser():
-    return redirect(url_for('user', name=current_user.get_login()))
-
-
 @app.route('/user/<name>', methods=['GET'])
 @login_required
-def user(name):
-    user = db.getuser(name)
-    if not user:
-        return redirect(url_for('user', name=current_user.get_login()))
+def user(name=None):
+    if name:
+        user = db.getuser(name)
+        if user:
+            if current_user.get_login() == name:
+                user['current'] = True
+            return render_template('user.html', localize=loc, data=getavatars(), user=user)
 
-    if current_user.get_login() == name:
-        user['current'] = True
-    else:
-        pass
-    return render_template('user.html', localize=loc, data=getavatars(), user=user)
+    return redirect(url_for('user', name=current_user.get_login()))
 
 
 @app.route('/registration', methods=['GET', 'POST'])
