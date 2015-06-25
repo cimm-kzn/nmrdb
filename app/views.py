@@ -31,6 +31,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 
 loc = localization()
 statuscode = dict(all=None, cmp=True, new=False)
+taskuserlikekeys = db.gettaskuserlikekeys()
 
 
 def admin_required(role=None):
@@ -59,9 +60,11 @@ def getavatars(sfilter='all', ufilter=None):
 def index():
     return render_template('index.html', localize=loc, data=getavatars())
 
+
 ''' TASK
     pages
 '''
+
 
 @app.route('/newtask', methods=['GET', 'POST'])
 @login_required
@@ -92,8 +95,8 @@ def spectras(sfilter):
         '''
         user = 0
         access = [x[2] for x in db.getavatars(current_user.get_id())]
-        avatar = ufilter if ufilter in access or current_user.get_role() in ['admin', 'op'] else ''
-    elif current_user.get_role() in ['admin', 'op']:
+        avatar = ufilter if ufilter in access or current_user.get_role() == 'admin' else ''
+    elif current_user.get_role() == 'admin':
         ''' админский доступ ко все спектрам. нужно только для добавления в обработку по сути.
         '''
         user = 0
@@ -112,15 +115,19 @@ def spectras(sfilter):
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])
 @login_required
 def showtask(task):
-    task = db.gettask(task, user=None if current_user.get_role() in ['admin', 'op'] else current_user.get_id())
+    task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
     if task:
-        return render_template('showtask.html', localize=loc, data=getavatars(), task=task)
+        task['task'] = [taskuserlikekeys.get(i) for i, j in task['task'].items() if j]
+        return render_template('showtask.html', localize=loc, data=getavatars(), task=task,
+                               user=dict(role=current_user.get_role()))
     else:
         return redirect(url_for('spectras', sfilter='all'))
+
 
 ''' COMMON
     pages
 '''
+
 
 @app.route('/about', methods=['GET'])
 def about():
@@ -227,3 +234,11 @@ def newlab():
         db.addlab(form.labname.data)
         return redirect(url_for('user', name=current_user.get_login()))
     return render_template('newlab.html', form=form, localize=loc, data=getavatars())
+
+
+@app.route('/setstatus/<int:task>', methods=['GET'])
+@login_required
+@admin_required('admin')
+def setstatus(task):
+    db.settaskstatus(task)
+    return redirect(url_for('showtask', task=task))

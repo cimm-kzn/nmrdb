@@ -26,7 +26,8 @@ loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras
            filters='Filters', project='NMRdb', about='About', contacts='Contacts', login='Login',
            registration='Registration', newlab='New Laboratory', fclear='Clear User filter', doreg='New user?',
            newtask='New Task', newava='Change position', newpwd='New password', setchief='Share spectra',
-           taskcode='Task number', status='Complete?', user='User Name', time='Time')
+           taskcode='Task number', status='Complete?', user='User Name', time='Time', complete='Completed',
+           notcomplete='In Work', tasktype='Types of task', setcmp='Set as completed')
 
 def localization():
     loc.update(rus)

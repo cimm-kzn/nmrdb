@@ -27,6 +27,7 @@ from flask.ext.bcrypt import Bcrypt
 
 login_manager = LoginManager()
 
+
 def create_app(configfile=None):
     app = Flask(__name__)
     AppConfig(app, configfile)

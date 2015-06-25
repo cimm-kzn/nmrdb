@@ -31,7 +31,7 @@ crc = CRC8()
 
 class Users(db.Entity):
     id = PrimaryKey(int, auto=True)
-    fullname = Required(str, unique=True)
+    fullname = Required(str)
     name = Required(str, unique=True)
     passwd = Required(str)
     avatars = Set("Avatars", reverse="users")
@@ -100,9 +100,15 @@ class NmrDB:
         self.__stypekey = {y: x + 1 for x, y in enumerate(sorted(self.__cost))}
         self.__stypeval = {y: x for x, y in self.__stypekey.items()}
         self.__gettasknumb = self.__tasknumb()
+        self.__userlikekey = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}',
+                  c13_apt='13C_apt', c13_dept='13C_dept135', f19='19F', si29='29Si',
+                  b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
 
     def gettasktypes(self):
         return self.__stypeval
+
+    def gettaskuserlikekeys(self):
+        return self.__userlikekey
 
     @db_session
     def adduser(self, fullname, name, passwd, lab, role="common"):
@@ -299,23 +305,23 @@ class NmrDB:
         return False
 
     def __gettask(self, task):
-        return dict(title=task.title, structure=task.structure, status=task.status,
+        return dict(title=task.title, structure=task.structure, status=task.status, id=task.id,
                     files=[dict(file=x.file, stype=self.__stypeval.get(x.stype, "h1")) for x in task.spectras],
-                    h1=task.h1,
-                    h1_p31=task.h1_p31,
-                    p31=task.p31,
-                    p31_h1=task.p31_h1,
-                    c13=task.c13,
-                    c13_h1=task.c13_h1,
-                    c13_apt=task.c13_apt,
-                    c13_dept=task.c13_dept,
-                    f19=task.f19,
-                    si29=task.si29,
-                    b11=task.b11,
-                    noesy=task.noesy,
-                    hsqc=task.hsqc,
-                    hmbc=task.hmbc,
-                    cosy=task.cosy)
+                    task=dict(h1=task.h1,
+                              h1_p31=task.h1_p31,
+                              p31=task.p31,
+                              p31_h1=task.p31_h1,
+                              c13=task.c13,
+                              c13_h1=task.c13_h1,
+                              c13_apt=task.c13_apt,
+                              c13_dept=task.c13_dept,
+                              f19=task.f19,
+                              si29=task.si29,
+                              b11=task.b11,
+                              noesy=task.noesy,
+                              hsqc=task.hsqc,
+                              hmbc=task.hmbc,
+                              cosy=task.cosy))
 
     @db_session
     def settaskstatus(self, task, status=True):
