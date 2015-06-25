@@ -19,10 +19,12 @@
 # MA 02110-1301, USA.
 #
 __author__ = 'stsouko'
-from app import login_manager, db
+from app import login_manager, db, app
 from flask_login import UserMixin
 
+
 @login_manager.user_loader
+@app.cache.cached(timeout=60, key_prefix="load_user")
 def load_user(userid):
     user = db.getuserbyid(userid)
     if user:

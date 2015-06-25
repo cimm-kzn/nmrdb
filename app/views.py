@@ -29,6 +29,7 @@ from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava
 from app.logins import User
 from flask_login import login_user, login_required, logout_user, current_user
 
+
 loc = localization()
 statuscode = dict(all=None, cmp=True, new=False)
 taskuserlikekeys = db.gettaskuserlikekeys()
@@ -86,6 +87,7 @@ def newtaskcode(code):
 
 @app.route('/spectras/<sfilter>', methods=['GET'])
 @login_required
+@app.cache.cached(timeout=20)
 def spectras(sfilter):
     sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
     ufilter = request.args.get('user', None)
@@ -114,6 +116,7 @@ def spectras(sfilter):
 
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])
 @login_required
+@app.cache.cached(timeout=20)
 def showtask(task):
     task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
     if task:
