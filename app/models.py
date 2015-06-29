@@ -31,6 +31,13 @@ db = Database("sqlite", "../database.sqlite", create_db=True)
 crc = CRC8()
 
 
+class Blog(db.Entity):
+    id = PrimaryKey(int, auto=True)
+    head = Required(str)
+    text = Required(str)
+
+
+
 class Users(db.Entity):
     id = PrimaryKey(int, auto=True)
     fullname = Required(str)
@@ -39,8 +46,7 @@ class Users(db.Entity):
     avatars = Set("Avatars", reverse="users")
     personalavatar = Optional("Avatars", reverse="user")
     childavatars = Set("Avatars", reverse="parentuser")
-    active = Required(bool)
-    role = Required(str)
+  role = Required(str)
 
 
 class Tasks(db.Entity):
