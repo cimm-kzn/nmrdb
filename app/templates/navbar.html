@@ -4,7 +4,6 @@
             <ul class="nav navbar-nav">
                 <li class="active"><a class="navbar-brand" href="{{ url_for('index') }}">{{ localize.project }}</a></li>
                 <li><a href="{{ url_for('index') }}">{{ localize.home }}</a></li>
-                <li><a href="{{ url_for('about') }}">{{ localize.about }}</a></li>
                 <li><a href="{{ url_for('contacts') }}">{{ localize.contacts }}</a></li>
                 {% if navbar %}
                     <li class="dropdown">

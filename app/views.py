@@ -154,14 +154,10 @@ def showtask(task):
 '''
 
 
-@app.route('/about', methods=['GET'])
-def about():
-    return redirect(url_for('index'))
-
-
 @app.route('/contacts', methods=['GET'])
+@app.cache.cached(timeout=300)
 def contacts():
-    return redirect(url_for('index'))
+    return render_template('contacts.html', localize=loc, navbardata=getavatars())
 
 
 @app.route('/user/', methods=['GET'])

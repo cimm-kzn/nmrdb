@@ -23,12 +23,16 @@ __author__ = 'stsouko'
 rus = dict(logout='Выйти')
 
 loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras', anon='Anonymous',
-           filters='Filters', project='NMRdb', about='About', contacts='Contacts', login='Login',
+           filters='Filters', project='NMRdb', contacts='Contacts', login='Login',
            registration='Registration', newlab='New Laboratory', fclear='Clear User filter', doreg='New user?',
            newtask='New Task', newava='Change position', newpwd='New password', setchief='Share spectra',
            taskcode='Task number', status='Complete?', user='User Name', time='Time', complete='Completed',
            notcomplete='In Work', tasktype='Types of task', setcmp='Set as completed', setincmp='Set as incompleted',
-           nextpage='Next Page', prevpage='Previous Page')
+           nextpage='Next Page', prevpage='Previous Page',
+           setchiefcomments='зачем все это',
+           changelabcomments='зачем все это',
+           newavacomment='зачем все это',
+           toe='условия использования и зачем все это нужно')
 
 def localization():
     loc.update(rus)
