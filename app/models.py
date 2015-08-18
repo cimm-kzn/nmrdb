@@ -18,6 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
+from math import ceil
+
 __author__ = 'stsouko'
 from pony.orm import *
 import time
@@ -88,6 +90,12 @@ class Spectras(db.Entity):
     file = Required(str)
     task = Required(Tasks)
 
+class Blog(db.Entity):
+    id = PrimaryKey(int, auto=True)
+    title = Required(str)
+    message = Required(str)
+    time = Required(int)
+
 
 sql_debug(True)
 db.generate_mapping(create_tables=True)
@@ -101,8 +109,8 @@ class NmrDB:
         self.__stypeval = {y: x for x, y in self.__stypekey.items()}
         self.__gettasknumb = self.__tasknumb()
         self.__userlikekey = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}',
-                  c13_apt='13C_apt', c13_dept='13C_dept135', f19='19F', si29='29Si',
-                  b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
+                                  c13_apt='13C apt', c13_dept='13C dept135', f19='19F', si29='29Si',
+                                  b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
 
     def gettasktypes(self):
         return self.__stypeval
@@ -150,6 +158,25 @@ class NmrDB:
         return False
 
     @db_session
+    def addmessage(self, title, message):
+        q = Blog.get(title=title)
+        if not q:
+            Blog(title=title, message=message, time=int(time.time()))
+            return True
+
+        return False
+
+    @db_session
+    def getmessages(self, page=1, pagesize=5):
+        cc = ceil(count(x for x in Blog) / pagesize)
+        if cc and cc >= page:
+            q = select(x for x in Blog).order_by(Blog.id.desc()).page(page, pagesize=pagesize)
+            return [dict(time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
+                    title=x.title, message=x.message) for x in q], cc
+
+        return [], 1
+
+    @db_session
     def shareava(self, fromuser, touser):
         fromuser = Users.get(id=fromuser)
         touser = Users.get(id=touser)
@@ -180,9 +207,13 @@ class NmrDB:
         else:
             q = select(x for x in Tasks if status is None or x.status == status)
 
-        return [dict(id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
-                     status=x.status, key=x.key, user=x.avatar.parentuser.fullname) for x in
-                q.order_by(Tasks.id.desc()).page(page, pagesize=pagesize)]
+        cc = ceil(count(q) / pagesize)
+        if cc and cc >= page:
+            return [dict(id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
+                    status=x.status, key=x.key, user=x.avatar.parentuser.fullname) for x in
+                    q.order_by(Tasks.id.desc()).page(page, pagesize=pagesize)], cc
+
+        return [], 1
 
     @db_session
     def changeava(self, user):
@@ -306,7 +337,7 @@ class NmrDB:
 
     def __gettask(self, task):
         return dict(title=task.title, structure=task.structure, status=task.status, id=task.id,
-                    files=[dict(file=x.file, stype=self.__stypeval.get(x.stype, "h1")) for x in task.spectras],
+                    files={self.__stypeval.get(x.stype, "h1"): x.file for x in task.spectras},
                     task=dict(h1=task.h1,
                               h1_p31=task.h1_p31,
                               p31=task.p31,

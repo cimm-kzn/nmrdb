@@ -1,4 +1,4 @@
-{% macro navbar(localize, data=None) %}
+{% macro navbar(localize, navbar) %}
     <nav class="navbar navbar-default navbar-static-top">
         <div class="container">
             <ul class="nav navbar-nav">
@@ -6,20 +6,20 @@
                 <li><a href="{{ url_for('index') }}">{{ localize.home }}</a></li>
                 <li><a href="{{ url_for('about') }}">{{ localize.about }}</a></li>
                 <li><a href="{{ url_for('contacts') }}">{{ localize.contacts }}</a></li>
-                {% if data %}
+                {% if navbar %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ localize.filters }} <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="{{ url_for('spectras', sfilter='all', user=data.ufilter or None) }}">all</a></li>
-                            <li><a href="{{ url_for('spectras', sfilter='new', user=data.ufilter or None) }}">new</a></li>
-                            <li><a href="{{ url_for('spectras', sfilter='cmp', user=data.ufilter or None) }}">completed</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter='all', user=navbar.ufilter or None) }}">all</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter='new', user=navbar.ufilter or None) }}">new</a></li>
+                            <li><a href="{{ url_for('spectras', sfilter='cmp', user=navbar.ufilter or None) }}">completed</a></li>
                             <li class="divider"></li>
-                            {% if data.ufilter %}
-                                <li><a href="{{ url_for('spectras', sfilter=data.sfilter) }}">{{ localize.fclear }}</a></li>
+                            {% if navbar.ufilter %}
+                                <li><a href="{{ url_for('spectras', sfilter=navbar.sfilter) }}">{{ localize.fclear }}</a></li>
                             {% endif %}
                             <li class="dropdown-header">{{ localize.sub }}</li>
-                            {% for id, ava, user in data.child %}
-                                <li><a href="{{ url_for('spectras', sfilter=data.sfilter, user=user) }}">{{ ava }} ({{ id }})</a></li>
+                            {% for id, ava, user in navbar.child %}
+                                <li><a href="{{ url_for('spectras', sfilter=navbar.sfilter, user=user) }}">{{ ava }} ({{ id }})</a></li>
                             {% endfor %}
                         </ul>
                     </li>
@@ -27,8 +27,8 @@
                 {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                {% if data %}
-                    <li><a href="{{ url_for('user', name=data.login) }}">{{ data.name }}</a></li>
+                {% if navbar %}
+                    <li><a href="{{ url_for('user', name=navbar.login) }}">{{ navbar.name }}</a></li>
                     <li><a href="{{ url_for('logout') }}">{{ localize.logout }}</a></li>
                 {% else %}
                     <li><a href="{{ url_for('login') }}">{{ localize.anon }}</a></li>

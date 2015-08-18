@@ -1,10 +1,27 @@
 {% extends "main.html" %}
 {% block page %}
     <div class="row">
-        <div class="col-md-4"></div>
+        {% if user.role =='admin' %}
+            <div class="col-md-4"></div>
+            <div class="col-md-8">
+                {{ wtf.quick_form(form, form_type='horizontal', id='taskform', button_map={'submit_button': 'primary'})}}
+            </div>
+        {% endif %}
+        {% for x in data.msglist %}
+            <div class="col-md-4">{{ x.time }}</div>
+            <div class="col-md-8"><h2>{{ x.title }}</h2></div>
+
+            <div class="col-md-4"></div>
+            <div class="col-md-8">{{ x.message }}</div>
+        {% endfor %}
         <div class="col-md-4">
-            <h2>Hello World</h2>
+            {% if data.ppage %}
+                <a href="{{ data.ppage }}">{{ localize.prevpage }}</a>
+            {% endif %}
+            {% if data.npage %}
+                <a href="{{ data.npage }}">{{ localize.nextpage }}</a>
+            {% endif %}
         </div>
-        <div class="col-md-4"></div>
+        <div class="col-md-8"></div>
     </div>
 {% endblock %}

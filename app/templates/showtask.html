@@ -26,6 +26,9 @@
         document.observe('dom:loaded', function(){
             ketcher.showMolfileOpts('structure', $('structure').innerHTML, 100, {'autoScale':true, 'ignoreMouseEvents':true});
         });
+        function copyToClipboard(text) {
+            window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
+        }
     </script>
 {% endblock %}
 {% block page %}
@@ -38,18 +41,26 @@
             {% else %}
                 <h4>{{ localize.notcomplete }}</h4>
             {% endif %}
-            {% if user.role =='admin' %}
-                <h2>ADMIN</h2>
-                <a href="{{ url_for('setstatus', task=task.id) }}">{{ localize.setcmp }}</a>
-            {% endif %}
         </div>
         <div class="col-md-4">
             <h3>{{ localize.tasktype }}</h3>
             <ul>
-            {% for i in task.task %}
-                <li>{{ i }}</li>
+            {% for k, i, j in task.task %}
+                {% if j %}
+                    <li><a href="{{ url_for('static', filename='fid/' + j) }}">{{ i }}</a> </li>
+                {% else %}
+                    <li>{{ i }}{% if user.role =='admin' %}: <a href="#" onclick=copyToClipboard('{{ task.id }}.{{ k }}');>click to get name</a> <a href="{{ url_for('addspectra', task=task.id, stype=k) }}">add</a> {% endif %}</li>
+                {% endif %}
             {% endfor %}
             </ul>
+            {% if user.role =='admin' %}
+                {% if task.status %}
+                    <a href="{{ url_for('setstatus', task=task.id, status=False) }}">{{ localize.setincmp }}</a>
+                {% else %}
+                    <a href="{{ url_for('setstatus', task=task.id) }}">{{ localize.setcmp }}</a>
+                {% endif %}
+
+            {% endif %}
         </div>
     </div>
 {% endblock %}

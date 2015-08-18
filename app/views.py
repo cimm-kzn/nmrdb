@@ -25,10 +25,9 @@ from flask import render_template, request, redirect, url_for
 from app import app
 from app.localization import localization
 from app import db
-from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd
+from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg
 from app.logins import User
 from flask_login import login_user, login_required, logout_user, current_user
-
 
 loc = localization()
 statuscode = dict(all=None, cmp=True, new=False)
@@ -57,9 +56,26 @@ def getavatars(sfilter='all', ufilter=None):
 
 
 @app.route('/', methods=['GET', 'POST'])
-@app.route('/index', methods=['GET', 'POST'])
-def index():
-    return render_template('index.html', localize=loc, data=getavatars())
+@app.route('/index/', methods=['GET', 'POST'])
+@app.route('/index/<int:page>', methods=['GET', 'POST'])
+def index(page=1):
+    form = Newmsg()
+    if form.validate_on_submit():
+        msg = db.addmessage(title=form.title.data, message=form.message.data)
+        if msg:
+            return redirect(url_for('index', page=1))
+
+    if page < 1:
+        return redirect(url_for('index', page=1))
+
+    msg, pc = db.getmessages(page=page)
+
+    data = dict(npage=page + 1 if page < pc else False,
+                ppage=page - 1 if 1 < page <= pc else False,
+                msglist=msg)
+
+    return render_template('index.html', localize=loc, navbardata=getavatars(), data=data, form=form,
+                           user=dict(role=current_user.get_role() if current_user.is_authenticated() else None))
 
 
 ''' TASK
@@ -76,22 +92,25 @@ def newtask():
         key = db.addtask(current_user.get_id(), structure=form.structure.data, title=form.taskname.data, **tasktypes)
         if key:
             return redirect(url_for('newtaskcode', code=key))
-    return render_template('newtask.html', form=form, localize=loc, data=getavatars())
+    return render_template('newtask.html', form=form, localize=loc, navbardata=getavatars())
 
 
 @app.route('/newtaskcode/<code>', methods=['GET'])
 @login_required
 def newtaskcode(code):
-    return render_template('newtaskcode.html', code=code, localize=loc, data=getavatars())
+    return render_template('newtaskcode.html', code=code, localize=loc, navbardata=getavatars())
 
 
+@app.route('/spectras/', methods=['GET'])
 @app.route('/spectras/<sfilter>', methods=['GET'])
 @login_required
-@app.cache.cached(timeout=20)
-def spectras(sfilter):
+@app.cache.cached(timeout=5)
+def spectras(sfilter=None):
     sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
     ufilter = request.args.get('user', None)
     page = int(request.args.get('page', 1))
+    if page < 1:
+        return redirect(url_for('spectras', sfilter=sfilter, user=ufilter, page=1))
     if ufilter:
         ''' спектры отсортированные по аватарам.
         '''
@@ -109,19 +128,22 @@ def spectras(sfilter):
         user = current_user.get_id()
         avatar = ''
 
-    spectras = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
+    spectras, pc = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
+    data = dict(npage=page + 1 if page < pc else False,
+                ppage=page - 1 if 1 < page <= pc else False,
+                spectras=spectras)
     return render_template('spectras.html', localize=loc,
-                           data=getavatars(sfilter=sfilter, ufilter=ufilter), slist=spectras)
+                           navbardata=getavatars(sfilter=sfilter, ufilter=ufilter), data=data)
 
 
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])
 @login_required
-@app.cache.cached(timeout=20)
+@app.cache.cached(timeout=5)
 def showtask(task):
     task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
     if task:
-        task['task'] = [taskuserlikekeys.get(i) for i, j in task['task'].items() if j]
-        return render_template('showtask.html', localize=loc, data=getavatars(), task=task,
+        task['task'] = [(i, taskuserlikekeys.get(i), task['files'].get(i)) for i, j in task['task'].items() if j]
+        return render_template('showtask.html', localize=loc, navbardata=getavatars(), task=task,
                                user=dict(role=current_user.get_role()))
     else:
         return redirect(url_for('spectras', sfilter='all'))
@@ -151,7 +173,7 @@ def user(name=None):
         if user:
             if current_user.get_login() == name:
                 user['current'] = True
-            return render_template('user.html', localize=loc, data=getavatars(), user=user)
+            return render_template('user.html', localize=loc, navbardata=getavatars(), user=user)
 
     return redirect(url_for('user', name=current_user.get_login()))
 
@@ -190,7 +212,7 @@ def changeava():
     if form.validate_on_submit():
         if db.changeava(current_user.get_id()):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('newava.html', form=form, localize=loc, data=getavatars())
+    return render_template('newava.html', form=form, localize=loc, navbardata=getavatars())
 
 
 @app.route('/changelab', methods=['GET', 'POST'])
@@ -200,7 +222,7 @@ def changelab():
     if form.validate_on_submit():
         if db.changelab(current_user.get_id(), form.laboratory.data):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('changelab.html', form=form, localize=loc, data=getavatars())
+    return render_template('changelab.html', form=form, localize=loc, navbardata=getavatars())
 
 
 @app.route('/changepwd', methods=['GET', 'POST'])
@@ -210,7 +232,7 @@ def changepwd():
     if form.validate_on_submit():
         if db.changepasswd(current_user.get_id(), form.newpassword.data):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('newpwd.html', form=form, localize=loc, data=getavatars())
+    return render_template('newpwd.html', form=form, localize=loc, navbardata=getavatars())
 
 
 @app.route('/shareava', methods=['GET', 'POST'])
@@ -220,7 +242,7 @@ def shareava():
     if form.validate_on_submit():
         if db.shareava(current_user.get_id(), db.getuser(form.name.data)['id']):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('setchief.html', form=form, localize=loc, data=getavatars())
+    return render_template('setchief.html', form=form, localize=loc, navbardata=getavatars())
 
 
 ''' ADMIN SECTION
@@ -236,12 +258,22 @@ def newlab():
     if form.validate_on_submit():
         db.addlab(form.labname.data)
         return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('newlab.html', form=form, localize=loc, data=getavatars())
+    return render_template('newlab.html', form=form, localize=loc, navbardata=getavatars())
 
 
 @app.route('/setstatus/<int:task>', methods=['GET'])
 @login_required
 @admin_required('admin')
 def setstatus(task):
-    db.settaskstatus(task)
+    status = False if request.args.get('status') else True
+    db.settaskstatus(task, status=status)
+    return redirect(url_for('showtask', task=task))
+
+@app.route('/addspectra/<int:task>', methods=['GET'])
+@login_required
+@admin_required('admin')
+def addspectra(task):
+    stype = request.args.get('stype')
+    name = '%s.%s.zip' % (task, stype)
+    db.addspectras(task, name, stype)
     return redirect(url_for('showtask', task=task))

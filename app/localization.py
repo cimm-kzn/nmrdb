@@ -27,7 +27,8 @@ loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras
            registration='Registration', newlab='New Laboratory', fclear='Clear User filter', doreg='New user?',
            newtask='New Task', newava='Change position', newpwd='New password', setchief='Share spectra',
            taskcode='Task number', status='Complete?', user='User Name', time='Time', complete='Completed',
-           notcomplete='In Work', tasktype='Types of task', setcmp='Set as completed')
+           notcomplete='In Work', tasktype='Types of task', setcmp='Set as completed', setincmp='Set as incompleted',
+           nextpage='Next Page', prevpage='Previous Page')
 
 def localization():
     loc.update(rus)

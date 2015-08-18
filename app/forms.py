@@ -22,7 +22,7 @@ __author__ = 'stsouko'
 from app import db
 from flask_wtf import Form
 from wtforms import StringField, HiddenField, validators, \
-    BooleanField, SubmitField, SelectField, PasswordField, ValidationError, SelectMultipleField
+    BooleanField, SubmitField, SelectField, PasswordField, ValidationError, SelectMultipleField, TextAreaField
 from flask_login import current_user
 
 class CheckExist(object):
@@ -110,6 +110,11 @@ class Newlab(Form):
     labname = StringField('Laboratory', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
 
+class Newmsg(Form):
+    title = StringField('Title', [validators.DataRequired()])
+    message = TextAreaField('Message', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')
+
 class Newtask(Form):
     def __init__(self):
         super().__init__()
@@ -121,3 +126,4 @@ class Newtask(Form):
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure', [validators.DataRequired(), CheckMol()])
     submit_button = SubmitField('Enter')
+
