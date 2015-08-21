@@ -27,7 +27,9 @@
 		}
 
         $(document).ready(function() {
-            $('#tasktypes').multiselect();
+            $('#tasktypes').multiselect({
+            maxHeight: 200
+            });
             $('#taskform').on('submit', function(e){
                 e.preventDefault();
                 getMolfile();
@@ -44,6 +46,6 @@
             <h2>{{ localize.newtask }}</h2>
             {{ wtf.quick_form(form, form_type='horizontal', id='taskform', button_map={'submit_button': 'primary'})}}
         </div>
-        <div class="col-md-8">how to use it.</div>
+        <div class="col-md-8">{{ localize.newtaskcomment }}</div>
     </div>
 {% endblock %}

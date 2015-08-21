@@ -20,25 +20,31 @@
 #
 __author__ = 'stsouko'
 
-rus = dict(logout='Выйти',home='Главная', sub='иерархия', spectras='Спектры', anon='Аноним', filters='фильтры', project='NMRdb', contacts='контакты', login='Логин',
-           registration='Регистрация', newlab='Новая лаборатория', fclear='очиcтить фильтры по пользователям', doreg='Новый пользователь', newtask='Новое задание',
-            newava='Поменять позицию', newpwd='Новый пароль', setchief='поделиться спектром', taskcode='номер задания', status='Завершон?', user='Имя пользователя',
-           time='время', complete='работа завершена', notcomplete='В работе', tasktype='образец(тип) задания', setcmp='установить завершение работы',
-            nextpage='следущая страница', prevpage='преведущая страница', newavacomment='При переходе из одной лаборатории в другую следует зарегистрироваться, как новому пользователю.'
-            toe='Внимание, без регистрации вы не сможете пользоваться данным ресурсом!')
-
+rus = dict(logout='Выйти', home='Главная', sub='иерархия', spectras='Спектры', anon='Аноним', filters='фильтры',
+           project='NMRdb', contacts='контакты', login='Логин',
+           registration='Регистрация', newlab='Новая лаборатория', fclear='очиcтить фильтры по пользователям',
+           doreg='Новый пользователь', newtask='Новое задание',
+           newava='Поменять позицию', newpwd='Новый пароль', setchief='поделиться спектром', taskcode='номер задания',
+           status='Завершон?', user='Имя пользователя',
+           time='время', complete='работа завершена', notcomplete='В работе', tasktype='образец(тип) задания',
+           setcmp='установить завершение работы',
+           nextpage='следущая страница', prevpage='преведущая страница',
+           newavacomment='Необходимо для закрытия доступа к новым спектрам пользователям которыми в прошлом был дан доступ. ',
+           toe='Внимание, без регистрации вы не сможете пользоваться данным ресурсом!')
 
 loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras', anon='Anonymous',
            filters='Filters', project='NMRdb', contacts='Contacts', login='Login',
-           registration='Registration', newlab='New Laboratory', fclear='Clear User filter', doreg='New user?',
+           registration='Registration', newlab='Change Laboratory', fclear='Clear User filter', doreg='New user?',
            newtask='New Task', newava='Change position', newpwd='New password', setchief='Share spectra',
            taskcode='Task number', status='Complete?', user='User Name', time='Time', complete='Completed',
            notcomplete='In Work', tasktype='Types of task', setcmp='Set as completed', setincmp='Set as incompleted',
            nextpage='Next Page', prevpage='Previous Page',
-           setchiefcomments='зачем все это#####',
+           setchiefcomments='Share your data (from last laboratory or position change) with somebody (Chief, Head of group, etc)',
            changelabcomments='зачем все это$$$$$',
            newavacomment='зачем менять аву. для отпочковывания^^^^^^',
-           toe='условия использования и зачем все это нужно')
+           toe='условия использования и зачем все это нужно',
+           newtaskcomment='task creation instruction')
+
 
 def localization():
     loc.update(rus)
