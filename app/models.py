@@ -25,9 +25,10 @@ from pony.orm import *
 import time
 from app.lib.crc8 import CRC8
 import datetime
-from app import bcrypt
+from app import bcrypt, app
 
-db = Database("sqlite", "../database.sqlite", create_db=True)
+db = Database('mysql', user=app.config.get("db_user"), password=app.config.get("db_pass"),
+              host=app.config.get("db_loc"), database=app.config.get("db_table"))
 crc = CRC8()
 
 
@@ -97,7 +98,6 @@ class Blog(db.Entity):
     time = Required(int)
 
 
-sql_debug(True)
 db.generate_mapping(create_tables=True)
 
 
