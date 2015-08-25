@@ -25,7 +25,7 @@ from flask import render_template, request, redirect, url_for
 from app import app
 from app.localization import localization
 from app import db
-from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg
+from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg, Banuser
 from app.logins import User
 from flask_login import login_user, login_required, logout_user, current_user
 
@@ -244,6 +244,45 @@ def shareava():
 ''' ADMIN SECTION
     DANGEROUS code
 '''
+@app.route('/changerole', methods=['GET', 'POST'])
+@login_required
+@admin_required('admin')
+def changerole():
+    form = Banuser()
+    if form.validate_on_submit():
+        users = db.getusersbypartname(form.username.data)
+        if users:
+            return render_template('changerolelist.html', data=users, localize=loc, navbardata=getavatars())
+    return render_template('changerole.html', form=form, localize=loc, navbardata=getavatars())
+
+
+@app.route('/dochange/<int:user>', methods=['GET'])
+@login_required
+@admin_required('admin')
+def dochange(user):
+    role = request.args.get('status')
+    db.changeuserrole(user, role)
+    return redirect(url_for('user', name=current_user.get_login()))
+
+
+@app.route('/banuser', methods=['GET', 'POST'])
+@login_required
+@admin_required('admin')
+def banuser():
+    form = Banuser()
+    if form.validate_on_submit():
+        users = db.getusersbypartname(form.username.data)
+        if users:
+            return render_template('banuserlist.html', data=users, localize=loc, navbardata=getavatars())
+    return render_template('banuser.html', form=form, localize=loc, navbardata=getavatars())
+
+
+@app.route('/doban/<int:user>', methods=['GET'])
+@login_required
+@admin_required('admin')
+def doban(user):
+    db.banuser(user)
+    return redirect(url_for('user', name=current_user.get_login()))
 
 
 @app.route('/newlab', methods=['GET', 'POST'])

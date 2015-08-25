@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+{% block page %}
+    <div class="row">
+        <div class="col-md-8">
+            <h2>{{ localize.banuser }}</h2>
+            <ul>
+                {% for user in data %}
+                    <li><a href="{{ url_for('doban', user=user.id) }}">{{ user.name }}: {{ user.fullname }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+{% endblock %}

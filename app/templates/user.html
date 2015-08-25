@@ -17,8 +17,8 @@
                     <h2>ADMIN</h2>
                     <ul>
                         <li><a href="{{ url_for('newlab') }}">{{ localize.newlab }}</a></li>
-                        <li>ban user</li>
-                        <li>change role</li>
+                        <li><a href="{{ url_for('changerole') }}">{{ localize.changerole }}</a></li>
+                        <li><a href="{{ url_for('banuser') }}">{{ localize.banuser }}</a></li>
                     </ul>
                 {% endif %}
             {% endif %}

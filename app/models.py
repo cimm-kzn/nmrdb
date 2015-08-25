@@ -293,6 +293,11 @@ class NmrDB:
         return False
 
     @db_session
+    def getusersbypartname(self, name):
+        q = select((x.id, x.name, x.fullname) for x in Users if name in x.fullname)
+        return [dict(id=x, name=y, fullname=z) for x, y, z in q]
+
+    @db_session
     def getuser(self, name):
         user = Users.get(name=name)
         if user:

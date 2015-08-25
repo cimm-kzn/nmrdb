@@ -110,6 +110,10 @@ class Newlab(Form):
     labname = StringField('Laboratory', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
 
+class Banuser(Form):
+    username = StringField('User', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')
+
 class Newmsg(Form):
     title = StringField('Title', [validators.DataRequired()])
     message = TextAreaField('Message', [validators.DataRequired()])
