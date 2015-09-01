@@ -27,9 +27,11 @@ from app.lib.crc8 import CRC8
 import datetime
 from app import bcrypt, app
 
-
-db = Database('mysql', user=app.config.get("DB_USER"), password=app.config.get("DB_PASS"),
-              host=app.config.get("DB_LOC"), database=app.config.get("DB_TABLE"))
+if app.config.get("DEBUG"):
+    db = Database("sqlite", "../database.sqlite", create_db=True)
+else:
+    db = Database('mysql', user=app.config.get("DB_USER"), password=app.config.get("DB_PASS"),
+                  host=app.config.get("DB_LOC"), database=app.config.get("DB_TABLE"))
 crc = CRC8()
 
 
@@ -52,7 +54,7 @@ class Tasks(db.Entity):
     key = Required(str)
     status = Required(bool)
     title = Required(str)
-    structure = Required(str)
+    structure = Required(LongStr)
     spectras = Set("Spectras")
     h1 = Optional(bool)
     h1_p31 = Optional(bool)

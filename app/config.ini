@@ -1,6 +1,6 @@
 SECRET_KEY = 'development key'
 
-DEBUG = True
+DEBUG = False
 HOST = '0.0.0.0'
 CACHE_TYPE = 'simple'
 
