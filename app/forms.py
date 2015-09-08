@@ -25,6 +25,7 @@ from wtforms import StringField, HiddenField, validators, \
     BooleanField, SubmitField, SelectField, PasswordField, ValidationError, SelectMultipleField, TextAreaField
 from flask_login import current_user
 
+
 class CheckExist(object):
     def __init__(self):
         self.message = 'User exist'
@@ -33,6 +34,7 @@ class CheckExist(object):
         username = field.data
         if db.getuser(username):
             raise ValidationError(self.message)
+
 
 class CheckNotExist(object):
     def __init__(self):
@@ -43,6 +45,7 @@ class CheckNotExist(object):
         if not db.getuser(username):
             raise ValidationError(self.message)
 
+
 class CheckPwd(object):
     def __init__(self):
         self.message = 'Wrong password'
@@ -52,12 +55,12 @@ class CheckPwd(object):
         if not db.chkpwd(current_user.get_id(), passwd):
             raise ValidationError(self.message)
 
+
 class CheckMol(object):
     def __init__(self):
         self.message = 'No structure'
 
     def __call__(self, form, field):
-
         if '  0  0  0     0  0            999 V2000' in field.data:
             raise ValidationError(self.message)
 
@@ -76,10 +79,12 @@ class Registration(Form):
     accept_tos = BooleanField('I accept the TOS', [validators.DataRequired()])
     submit_button = SubmitField('Submit')
 
+
 class Login(Form):
     username = StringField('Login', [validators.DataRequired()])
     password = PasswordField('Password', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
+
 
 class Changelab(Form):
     def __init__(self):
@@ -90,6 +95,7 @@ class Changelab(Form):
     password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 
+
 class Changepwd(Form):
     password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     newpassword = PasswordField('New Password', [validators.DataRequired(),
@@ -97,27 +103,33 @@ class Changepwd(Form):
     confirm = PasswordField('Repeat Password', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
 
+
 class Changeava(Form):
     password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
+
 
 class ChangeChief(Form):
     name = StringField('User Name for share', validators=[validators.DataRequired(), CheckNotExist()])
     password = PasswordField('Password', [validators.DataRequired(), CheckPwd()])
     submit_button = SubmitField('Enter')
 
+
 class Newlab(Form):
     labname = StringField('Laboratory', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
+
 
 class Banuser(Form):
     username = StringField('User', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
 
+
 class Newmsg(Form):
     title = StringField('Title', [validators.DataRequired()])
     message = TextAreaField('Message', [validators.DataRequired()])
     submit_button = SubmitField('Enter')
+
 
 class Newtask(Form):
     def __init__(self):
@@ -130,4 +142,3 @@ class Newtask(Form):
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure', [validators.DataRequired(), CheckMol()])
     submit_button = SubmitField('Enter')
-

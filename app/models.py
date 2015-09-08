@@ -296,8 +296,8 @@ class NmrDB:
 
     @db_session
     def getusersbypartname(self, name):
-        q = select((x.id, x.name, x.fullname) for x in Users if name in x.fullname)
-        return [dict(id=x, name=y, fullname=z) for x, y, z in q]
+        q = select((x.id, x.name, x.fullname, x.role) for x in Users if name in x.fullname)
+        return [dict(id=x, name=y, fullname=z, role=w) for x, y, z, w in q]
 
     @db_session
     def getuser(self, name):

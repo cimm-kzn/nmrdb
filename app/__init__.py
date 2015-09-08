@@ -24,7 +24,6 @@ from flask_bootstrap import Bootstrap
 from flask_appconfig import AppConfig
 from flask_login import LoginManager
 from flask.ext.bcrypt import Bcrypt
-from flask.ext.cache import Cache
 
 login_manager = LoginManager()
 
@@ -36,7 +35,6 @@ def create_app(configfile=None):
     Bootstrap(app)
     login_manager.init_app(app)
     bcrypt = Bcrypt(app)
-    app.cache = Cache(app)
     login_manager.login_view = 'login'
     return app, bcrypt
 

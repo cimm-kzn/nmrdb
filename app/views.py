@@ -104,7 +104,6 @@ def newtaskcode(code):
 @app.route('/spectras/', methods=['GET'])
 @app.route('/spectras/<sfilter>', methods=['GET'])
 @login_required
-@app.cache.cached(timeout=5)
 def spectras(sfilter=None):
     sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
     ufilter = request.args.get('user', None)
@@ -138,7 +137,6 @@ def spectras(sfilter=None):
 
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])
 @login_required
-@app.cache.cached(timeout=5)
 def showtask(task):
     task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
     if task:
@@ -155,7 +153,6 @@ def showtask(task):
 
 
 @app.route('/contacts', methods=['GET'])
-@app.cache.cached(timeout=300)
 def contacts():
     return render_template('contacts.html', localize=loc, navbardata=getavatars())
 
@@ -244,6 +241,8 @@ def shareava():
 ''' ADMIN SECTION
     DANGEROUS code
 '''
+
+
 @app.route('/changerole', methods=['GET', 'POST'])
 @login_required
 @admin_required('admin')
@@ -261,7 +260,8 @@ def changerole():
 @admin_required('admin')
 def dochange(user):
     role = request.args.get('status')
-    db.changeuserrole(user, role)
+    if role:
+        db.changeuserrole(user, role)
     return redirect(url_for('user', name=current_user.get_login()))
 
 
