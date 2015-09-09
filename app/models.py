@@ -270,10 +270,13 @@ class NmrDB:
     def addtask(self, user, **kwargs):
         user = Users.get(id=user)
         key = self.__gettaskkey('%04d' % next(self.__gettasknumb))
+        solv = kwargs.get('solvent', 1)
+        if solv not in self.__solvents:
+            solv = 1
         if user:
             Tasks(avatar=user.personalavatar, time=int(time.time()), key=key, status=False,
                   title=kwargs.get("title", ''), structure=kwargs.get("structure"),
-                  solvent=kwargs.get('solvent', 0) if kwargs.get('solvent', 0) in self.__solvents else 0,
+                  solvent=solv,
                   h1=kwargs.get('h1', False),
                   h1_p31=kwargs.get('h1_p31', False),
                   p31=kwargs.get('p31', False),
