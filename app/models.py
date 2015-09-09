@@ -56,6 +56,7 @@ class Tasks(db.Entity):
     title = Required(str)
     structure = Required(LongStr)
     spectras = Set("Spectras")
+    solvent = Required(int)
     h1 = Optional(bool)
     h1_p31 = Optional(bool)
     p31 = Optional(bool)
@@ -114,9 +115,14 @@ class NmrDB:
         self.__userlikekey = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}',
                                   c13_apt='13C apt', c13_dept='13C dept135', f19='19F', si29='29Si',
                                   b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
+        solvent = ['CDCh3', 'D2O', 'D-DMSO']
+        self.__solvents = {x: y for x, y in enumerate(solvent)}
 
     def gettasktypes(self):
         return self.__stypeval
+
+    def getsolvents(self):
+        return self.__solvents
 
     def gettaskuserlikekeys(self):
         return self.__userlikekey
@@ -254,7 +260,7 @@ class NmrDB:
 
     @staticmethod
     def __tasknumb():
-        i = 0
+        i = int(time.time()) // 1000
         while True:
             i += 1
             yield i % 10000
@@ -266,6 +272,7 @@ class NmrDB:
         if user:
             Tasks(avatar=user.personalavatar, time=int(time.time()), key=key, status=False,
                   title=kwargs.get("title", ''), structure=kwargs.get("structure"),
+                  solvent=kwargs.get('solvent', 0) if kwargs.get('solvent', 0) in self.__solvents else 0,
                   h1=kwargs.get('h1', False),
                   h1_p31=kwargs.get('h1_p31', False),
                   p31=kwargs.get('p31', False),
@@ -346,6 +353,7 @@ class NmrDB:
     def __gettask(self, task):
         return dict(title=task.title, structure=task.structure, status=task.status, id=task.id,
                     files={self.__stypeval.get(x.stype, "h1"): x.file for x in task.spectras},
+                    solvent=self.__solvents[task.solvent],
                     task=dict(h1=task.h1,
                               h1_p31=task.h1_p31,
                               p31=task.p31,

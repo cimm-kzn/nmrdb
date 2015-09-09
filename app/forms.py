@@ -135,10 +135,12 @@ class Newtask(Form):
     def __init__(self):
         super().__init__()
         self.tasktypes.choices = [(x, self.__cost.get(y, y)) for x, y in db.gettasktypes().items()]
+        self.solvent.choices = [db.getsolvents().items()]
 
     __cost = db.gettaskuserlikekeys()
 
     taskname = StringField('Title', [validators.DataRequired()])
+    solvent = SelectField('Solvent', [validators.DataRequired()], coerce=int)
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure', [validators.DataRequired(), CheckMol()])
     submit_button = SubmitField('Enter')

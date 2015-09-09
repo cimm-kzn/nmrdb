@@ -90,7 +90,8 @@ def newtask():
     form = Newtask()
     if form.validate_on_submit():
         tasktypes = dict.fromkeys([db.gettasktypes().get(x, 'h1') for x in form.tasktypes.data], True)
-        key = db.addtask(current_user.get_id(), structure=form.structure.data, title=form.taskname.data, **tasktypes)
+        key = db.addtask(current_user.get_id(), structure=form.structure.data, title=form.taskname.data,
+                         solvent=form.solvent.data, **tasktypes)
         if key:
             return redirect(url_for('newtaskcode', code=key))
     return render_template('newtask.html', form=form, localize=loc, navbardata=getavatars())
