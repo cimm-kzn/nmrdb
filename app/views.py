@@ -143,14 +143,17 @@ def spectras(sfilter=None):
                            navbardata=getavatars(sfilter=sfilter, ufilter=ufilter), data=data)
 
 
-@app.route('/download/<file>', methods=['GET'])
+@app.route('/download/<int:task>/<file>', methods=['GET'])
 @login_required
-def download(file):
-    resp = make_response()
-    resp.headers.extend({'X-Accel-Redirect': '/protected/%s' % file,
-                         'Content-Description': 'File Transfer',
-                         'Content-Type': 'application/octet-stream'})
-    return resp
+def download(task, file):
+    if db.chktaskaccess(task, current_user.get_id()):
+        resp = make_response()
+        resp.headers.extend({'X-Accel-Redirect': '/protected/%s' % file,
+                             'Content-Description': 'File Transfer',
+                             'Content-Type': 'application/octet-stream'})
+        return resp
+
+    return redirect(url_for('index'))
 
 
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])

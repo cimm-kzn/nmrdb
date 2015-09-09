@@ -333,6 +333,16 @@ class NmrDB:
         return bcrypt.check_password_hash(select(x.passwd for x in Users if x.id == userid).first(), pwd)
 
     @db_session
+    def chktaskaccess(self, task, user):
+        task = Tasks.get(id=task)
+        if task:
+            user = Users.get(id=user)
+            if user and task.avatar in user.avatars:
+                return True
+
+        return False
+
+    @db_session
     def gettaskbykey(self, key):
         if key == self.__gettaskkey(key[:4]):
             task = select(x for x in Tasks if x.key == key).order_by(Tasks.id.desc()).first()
