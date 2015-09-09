@@ -50,7 +50,7 @@
             <ul>
             {% for k, i, j in task.task %}
                 {% if j %}
-                    <li><a href="{{ url_for('download', file=j) }}">{{ i }}</a> </li>
+                    <li><a href="{{ url_for('download', task=task.id, file=j) }}">{{ i }}</a> </li>
                 {% else %}
                     <li>{{ i }}{% if user.role =='admin' %}: <a href="#" onclick=copyToClipboard('addurl.{{ k }}','{{ task.id }}.{{ k }}');>click to get name</a> <a id='addurl.{{ k }}' href="{{ url_for('addspectra', task=task.id, stype=k) }}">add</a> {% endif %}</li>
                 {% endif %}
