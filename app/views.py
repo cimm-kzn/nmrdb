@@ -21,11 +21,12 @@
 from functools import wraps
 
 __author__ = 'stsouko'
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, make_response
 from app import app
 from app.localization import localization
 from app import db
-from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg, Banuser
+from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg, \
+    Banuser, Gettask
 from app.logins import User
 from flask_login import login_user, login_required, logout_user, current_user
 
@@ -101,10 +102,16 @@ def newtaskcode(code):
     return render_template('newtaskcode.html', code=code, localize=loc, navbardata=getavatars())
 
 
-@app.route('/spectras/', methods=['GET'])
-@app.route('/spectras/<sfilter>', methods=['GET'])
+@app.route('/spectras/', methods=['GET', 'POST'])
+@app.route('/spectras/<sfilter>', methods=['GET', 'POST'])
 @login_required
 def spectras(sfilter=None):
+    form = Gettask()
+    if form.validate_on_submit():
+        task = db.gettaskbykey(form.task.data)
+        if task:
+            return redirect(url_for('showtask', task=task['id']))
+
     sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
     ufilter = request.args.get('user', None)
     page = int(request.args.get('page', 1))
@@ -131,8 +138,16 @@ def spectras(sfilter=None):
     data = dict(npage=page + 1 if page < pc else False,
                 ppage=page - 1 if 1 < page <= pc else False,
                 spectras=spectras)
-    return render_template('spectras.html', localize=loc,
+    return render_template('spectras.html', localize=loc, form=form,
                            navbardata=getavatars(sfilter=sfilter, ufilter=ufilter), data=data)
+
+
+@app.route('/download/<file>', methods=['GET'])
+@login_required
+def download(file):
+    resp = make_response()
+    resp.headers.extend({'X-Accel-Redirect: ': '/download/%s.zip' % file})
+    return resp
 
 
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])
@@ -304,11 +319,12 @@ def setstatus(task):
     db.settaskstatus(task, status=status)
     return redirect(url_for('showtask', task=task))
 
+
 @app.route('/addspectra/<int:task>', methods=['GET'])
 @login_required
 @admin_required('admin')
 def addspectra(task):
     stype = request.args.get('stype')
-    name = '%s.%s.zip' % (task, stype)
-    db.addspectras(task, name, stype)
+    cname = request.args.get('customname') or '%s.%s' % (task, stype)
+    db.addspectras(task, cname, stype)
     return redirect(url_for('showtask', task=task))

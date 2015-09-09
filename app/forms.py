@@ -142,3 +142,8 @@ class Newtask(Form):
     tasktypes = SelectMultipleField('Tasks', [validators.DataRequired()], coerce=int)
     structure = HiddenField('structure', [validators.DataRequired(), CheckMol()])
     submit_button = SubmitField('Enter')
+
+
+class Gettask(Form):
+    task = StringField('Task', [validators.DataRequired()])
+    submit_button = SubmitField('Enter')

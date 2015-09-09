@@ -26,8 +26,10 @@
         document.observe('dom:loaded', function(){
             ketcher.showMolfileOpts('structure', $('structure').innerHTML, 100, {'autoScale':true, 'ignoreMouseEvents':true});
         });
-        function copyToClipboard(text) {
-            window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
+        function copyToClipboard(id, text) {
+            var fname = window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
+            $(id).text = 'add (' + fname + ')';
+            $(id).href += '&customname=' + fname
         }
     </script>
 {% endblock %}
@@ -47,9 +49,9 @@
             <ul>
             {% for k, i, j in task.task %}
                 {% if j %}
-                    <li><a href="{{ url_for('static', filename='fid/' + j) }}">{{ i }}</a> </li>
+                    <li><a href="{{ url_for('download', file=j) }}">{{ i }}</a> </li>
                 {% else %}
-                    <li>{{ i }}{% if user.role =='admin' %}: <a href="#" onclick=copyToClipboard('{{ task.id }}.{{ k }}');>click to get name</a> <a href="{{ url_for('addspectra', task=task.id, stype=k) }}">add</a> {% endif %}</li>
+                    <li>{{ i }}{% if user.role =='admin' %}: <a href="#" onclick=copyToClipboard('addurl.{{ k }}','{{ task.id }}.{{ k }}');>click to get name</a> <a id='addurl.{{ k }}' href="{{ url_for('addspectra', task=task.id, stype=k) }}">add</a> {% endif %}</li>
                 {% endif %}
             {% endfor %}
             </ul>

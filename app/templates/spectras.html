@@ -1,6 +1,10 @@
 {% extends "main.html" %}
 {% block page %}
     <div class="row">
+        <div class="col-md-8"></div>
+        <div class="col-md-4">{{ wtf.quick_form(form, form_type='inline', button_map={'submit_button': 'primary'})}}</div>
+    </div>
+    <div class="row">
         <div class="col-md-3"><h3>{{ localize.user }}</h3></div>
         <div class="col-md-3"><h3>{{ localize.time }}</h3></div>
         <div class="col-md-3"><h3>{{ localize.status }}</h3></div>
@@ -19,6 +23,5 @@
                 <a href="{{ data.npage }}">{{ localize.nextpage }}</a>
             {% endif %}
         </div>
-        <div class="col-md-8"></div>
     </div>
 {% endblock %}
