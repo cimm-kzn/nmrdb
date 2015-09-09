@@ -146,7 +146,9 @@ def spectras(sfilter=None):
 @login_required
 def download(file):
     resp = make_response()
-    resp.headers.extend({'X-Accel-Redirect: ': '/downloads/%s' % file})
+    resp.headers.extend({'X-Accel-Redirect': '/protected/%s' % file,
+                         'Content-Description': 'File Transfer',
+                         'Content-Type': 'application/octet-stream'})
     return resp
 
 
