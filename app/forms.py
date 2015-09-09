@@ -135,7 +135,7 @@ class Newtask(Form):
     def __init__(self):
         super().__init__()
         self.tasktypes.choices = [(x, self.__cost.get(y, y)) for x, y in db.gettasktypes().items()]
-        self.solvent.choices = [db.getsolvents().items()]
+        self.solvent.choices = [(x, y) for x, y in db.getsolvents().items()]
 
     __cost = db.gettaskuserlikekeys()
 

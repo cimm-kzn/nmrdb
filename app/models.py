@@ -95,6 +95,7 @@ class Spectras(db.Entity):
     file = Required(str)
     task = Required(Tasks)
 
+
 class Blog(db.Entity):
     id = PrimaryKey(int, auto=True)
     title = Required(str)
