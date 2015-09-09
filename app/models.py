@@ -117,7 +117,7 @@ class NmrDB:
                                   c13_apt='13C apt', c13_dept='13C dept135', f19='19F', si29='29Si',
                                   b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
         solvent = ['CDCh3', 'D2O', 'D-DMSO']
-        self.__solvents = {x: y for x, y in enumerate(solvent)}
+        self.__solvents = {x: y for x, y in enumerate(solvent, start=1)}
 
     def gettasktypes(self):
         return self.__stypeval
