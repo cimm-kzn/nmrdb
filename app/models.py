@@ -116,7 +116,7 @@ class NmrDB:
         self.__userlikekey = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}',
                                   c13_apt='13C apt', c13_dept='13C dept135', f19='19F', si29='29Si',
                                   b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
-        solvent = ['CDCH3', 'D2O', 'DMSO-d6', 'C6D6', 'n/s', 'acetone-d6', 'CD3OD', "CD3CN']
+        solvent = ['CDCH3', 'D2O', 'DMSO-d6', 'C6D6', 'n/s', 'acetone-d6', 'CD3OD', 'CD3CN']
         self.__solvents = {x: y for x, y in enumerate(solvent, start=1)}
 
     def gettasktypes(self):
