@@ -148,7 +148,7 @@ def spectras(sfilter=None):
 def download(task, file):
     if db.chktaskaccess(task, current_user.get_id()):
         resp = make_response()
-        resp.headers.extend({'X-Accel-Redirect': '/protected/%s' % file,
+        resp.headers.extend({'X-Accel-Redirect': '/protected/%s.zip' % file,
                              'Content-Description': 'File Transfer',
                              'Content-Type': 'application/octet-stream'})
         return resp
