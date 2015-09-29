@@ -150,7 +150,9 @@ def download(task, file):
         resp = make_response()
         resp.headers.extend({'X-Accel-Redirect': '/protected/%s.zip' % file,
                              'Content-Description': 'File Transfer',
-                             'Content-Type': 'application/octet-stream'})
+                             'Content-Type': 'application/octet-stream',
+                             'Content-Disposition': 'attachment',
+                             'filename': '%s.zip' % file})
         return resp
 
     return redirect(url_for('index'))
