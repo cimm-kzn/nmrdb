@@ -337,7 +337,7 @@ class NmrDB:
         task = Tasks.get(id=task)
         if task:
             user = Users.get(id=user)
-            if user and task.avatar in user.avatars:
+            if user and (task.avatar in user.avatars or user.role == 'admin'):
                 return True
 
         return False
