@@ -136,8 +136,8 @@ def spectras(sfilter=None):
         avatar = ''
 
     spectras, pc = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
-    data = dict(npage=page + 1 if page < pc else False,
-                ppage=page - 1 if 1 < page <= pc else False,
+    data = dict(npage=url_for('spectras', sfilter=sfilter, user=ufilter, page=page + 1) if page < pc else False,
+                ppage=url_for('spectras', sfilter=sfilter, user=ufilter, page=page - 1) if 1 < page <= pc else False,
                 spectras=spectras)
     return render_template('spectras.html', localize=loc, form=form,
                            navbardata=getavatars(sfilter=sfilter, ufilter=ufilter), data=data)
