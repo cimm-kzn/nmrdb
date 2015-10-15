@@ -161,8 +161,7 @@ def download(task, file):
 def showtask(task):
     task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
     if task:
-        task['task'] = [(i, taskuserlikekeys.get(i), task['files'].get(i) + '.zip') for i, j in task['task'].items() if j]
-        print(task)
+        task['task'] = [(i, taskuserlikekeys.get(i), task['files'].get(i)) for i, j in task['task'].items() if j]
         return render_template('showtask.html', localize=loc, navbardata=getavatars(), task=task,
                                user=dict(role=current_user.get_role()))
     else:
