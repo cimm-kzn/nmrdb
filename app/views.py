@@ -159,7 +159,9 @@ def download(task, file):
 @app.route('/showtask/<int:task>', methods=['GET', 'POST'])
 @login_required
 def showtask(task):
+    print(None if current_user.get_role() == 'admin' else current_user.get_id())
     task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
+    print(task)
     if task:
         task['task'] = [(i, taskuserlikekeys.get(i), task['files'].get(i) + '.zip') for i, j in task['task'].items() if j]
         return render_template('showtask.html', localize=loc, navbardata=getavatars(), task=task,
