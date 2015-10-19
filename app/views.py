@@ -331,6 +331,6 @@ def setstatus(task):
 @admin_required('admin')
 def addspectra(task):
     stype = request.args.get('stype')
-    cname = request.args.get('customname') or '%s.%s' % (task, stype)
+    cname = request.args.get('customname') or '%s.%s.1' % (task, stype)
     db.addspectras(task, cname, stype)
     return redirect(url_for('showtask', task=task))
