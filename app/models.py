@@ -19,19 +19,18 @@
 # MA 02110-1301, USA.
 #
 from math import ceil
-
-__author__ = 'stsouko'
 from pony.orm import *
 import time
 from app.lib.crc8 import CRC8
+import bcrypt
 import datetime
-from app import bcrypt, app
+from app.config import DEBUG, DB_LOC, DB_TABLE, DB_USER, DB_PASS
 
-if app.config.get("DEBUG"):
+if DEBUG:
     db = Database("sqlite", "../database.sqlite", create_db=True)
+    sql_debug(True)
 else:
-    db = Database('mysql', user=app.config.get("DB_USER"), password=app.config.get("DB_PASS"),
-                  host=app.config.get("DB_LOC"), database=app.config.get("DB_TABLE"))
+    db = Database('mysql', user=DB_USER, password=DB_PASS, host=DB_LOC, database=DB_TABLE)
 crc = CRC8()
 
 
@@ -133,7 +132,7 @@ class NmrDB:
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
-            passwd = bcrypt.generate_password_hash(passwd)
+            passwd = bcrypt.hashpw(passwd, bcrypt.gensalt())
             user = Users(fullname=fullname, name=name, passwd=passwd, active=True, role=role)
             Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
@@ -249,7 +248,7 @@ class NmrDB:
     def changepasswd(self, user, passwd):
         user = Users.get(id=user)
         if user:
-            passwd = bcrypt.generate_password_hash(passwd)
+            passwd = bcrypt.hashpw(passwd, bcrypt.gensalt())
             user.passwd = passwd
             return True
 
@@ -330,7 +329,8 @@ class NmrDB:
 
     @db_session
     def chkpwd(self, userid, pwd):
-        return bcrypt.check_password_hash(select(x.passwd for x in Users if x.id == userid).first(), pwd)
+        hashed = Users.get(id=userid).passwd
+        return bcrypt.hashpw(pwd, hashed) == hashed
 
     @db_session
     def chktaskaccess(self, task, user):

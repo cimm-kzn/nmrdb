@@ -18,32 +18,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-__author__ = 'stsouko'
 from flask import Flask
 from flask_bootstrap import Bootstrap
-from flask_appconfig import AppConfig
 from flask_login import LoginManager
-from flask.ext.bcrypt import Bcrypt
-
-login_manager = LoginManager()
-
-
-
-def create_app(configfile=None):
-    app = Flask(__name__)
-    AppConfig(app, configfile)
-    Bootstrap(app)
-    login_manager.init_app(app)
-    bcrypt = Bcrypt(app)
-    login_manager.login_view = 'login'
-    return app, bcrypt
-
-
-app, bcrypt = create_app(configfile='config.ini')
-
 from app.models import NmrDB
+from app.config import SECRET_KEY
+
+
+def create_app():
+    fapp = Flask(__name__)
+    fapp.config['SECRET_KEY'] = SECRET_KEY
+
+    Bootstrap(fapp)
+
+    lm = LoginManager()
+    lm.init_app(fapp)
+    lm.login_view = 'login'
+    return fapp, lm
+
+
+print('INIT APP')
+app, login_manager = create_app()
 db = NmrDB()
 
 from app import views
-
-

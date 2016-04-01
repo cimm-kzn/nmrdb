@@ -20,7 +20,6 @@
 #
 from functools import wraps
 
-__author__ = 'stsouko'
 from flask import render_template, request, redirect, url_for, make_response
 from app import app
 from app.localization import localization

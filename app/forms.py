@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-__author__ = 'stsouko'
 from app import db
 from flask_wtf import Form
 from wtforms import StringField, HiddenField, validators, \
