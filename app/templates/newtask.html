@@ -28,7 +28,8 @@
 
         $(document).ready(function() {
             $('#tasktypes').multiselect({
-            maxHeight: 200
+                maxHeight: 200,
+                dropUp: true
             });
             $('#taskform').on('submit', function(e){
                 e.preventDefault();
@@ -41,7 +42,9 @@
 
 {% block page %}
     <div class="row">
-        <iframe id="ketcherFrame" name="ketcherFrame" style="min-height:510px;width:100%;border-style:none" src="{{ url_for('static', filename='ketcher/ketcher.html') }}" scrolling="no"></iframe>
+        <div class="col-md-12">
+            <iframe id="ketcherFrame" name="ketcherFrame" style="min-height:510px;width:100%;border-style:none" src="{{ url_for('static', filename='ketcher/ketcher.html') }}" scrolling="no"></iframe>
+        </div>
         <div class="col-md-4">
             <h2>{{ localize.newtask }}</h2>
             {{ wtf.quick_form(form, form_type='horizontal', id='taskform', button_map={'submit_button': 'primary'})}}
