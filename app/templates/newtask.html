@@ -31,6 +31,10 @@
                 maxHeight: 200,
                 dropUp: true
             });
+            $('#solvent').select({
+                maxHeight: 200,
+                dropUp: true
+            });
             $('#taskform').on('submit', function(e){
                 e.preventDefault();
                 getMolfile();
@@ -45,10 +49,12 @@
         <div class="col-md-12">
             <iframe id="ketcherFrame" name="ketcherFrame" style="min-height:510px;width:100%;border-style:none" src="{{ url_for('static', filename='ketcher/ketcher.html') }}" scrolling="no"></iframe>
         </div>
+    </div>
+    <div class="row">
         <div class="col-md-4">
-            <h2>{{ localize.newtask }}</h2>
+            <h2>{{ header }}</h2>
             {{ wtf.quick_form(form, form_type='horizontal', id='taskform', button_map={'submit_button': 'primary'})}}
         </div>
-        <div class="col-md-8">{{ localize.newtaskcomment }}</div>
+        <div class="col-md-8">{{ comments }}</div>
     </div>
 {% endblock %}

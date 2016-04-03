@@ -44,7 +44,9 @@ loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras
            newavacomment='зачем менять аву. для отпочковывания^^^^^^',
            toe='условия использования и зачем все это нужно',
            newtaskcomment='task creation instruction',
-           banuser='Ban User', changerole='Change Role')
+           banuser='Ban User', changerole='Change Role',
+           all='all', cmp='completed', new='new', profile='Profile',
+           taskcodecomment='WHY NEED TASK?')
 
 
 def localization():

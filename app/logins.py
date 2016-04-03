@@ -25,7 +25,7 @@ from flask_login import UserMixin
 
 @login_manager.user_loader
 def load_user(userid):
-    user = db.getuserbyid(userid)
+    user = db.getuser(userid=userid)
     if user:
         return User(**user)
 

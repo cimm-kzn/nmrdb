@@ -21,13 +21,15 @@
 from functools import wraps
 
 from flask import render_template, request, redirect, url_for, make_response
-from app import app
 from app.localization import localization
-from app import db
+from app import db, nav, app
 from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg, \
     Banuser, Gettask
 from app.logins import User
 from flask_login import login_user, login_required, logout_user, current_user
+from flask_nav.elements import *
+from app.navbar import Rightbar, Pagination
+
 
 loc = localization()
 statuscode = dict(all=None, cmp=True, new=False)
@@ -48,11 +50,36 @@ def admin_required(role=None):
 
 
 def getavatars(sfilter='all', ufilter=None):
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         return dict(name=current_user.name, child=db.getavatars(current_user.get_id()),
                     ufilter=ufilter, sfilter=sfilter, login=current_user.get_login())
 
     return None
+
+
+@nav.navigation()
+def top_nav():
+    navbar = [View(loc['home'], 'index'),
+              View(loc['contacts'], 'contacts')]
+    print(request.endpoint)
+
+    if current_user.is_authenticated:
+        sg = Subgroup(loc['filters'],
+                      View(loc['all'], 'spectras', sfilter='all', user='' or None),
+                      View(loc['new'], 'spectras', sfilter='new', user='' or None),
+                      View(loc['cmp'], 'spectras', sfilter='cmp', user='' or None),
+                      Separator(), Text(loc['sub']),)
+        rg = Rightbar(current_user.name, View(loc['profile'], 'user', name=current_user.get_login()),
+                      View(loc['logout'], 'logout'))
+        navbar.append(sg)
+        navbar.append(View(loc['newtask'], 'newtask'))
+
+    else:
+        rg = Rightbar(loc['anon'], View(loc['login'], 'login'), Separator(), Text(loc['doreg']),
+                      View(loc['registration'], 'registration'))
+    navbar.append(rg)
+    #print(Navbar(loc['project'], *navbar).render(renderer='myrenderer'))
+    return Navbar(loc['project'], *navbar)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -69,13 +96,12 @@ def index(page=1):
         return redirect(url_for('index', page=1))
 
     msg, pc = db.getmessages(page=page)
+    pag = Pagination(page, pc, pagesize=5)
+    if page != pag.page:
+        return redirect(url_for('index', page=pag.page))
 
-    data = dict(npage=page + 1 if page < pc else False,
-                ppage=page - 1 if 1 < page <= pc else False,
-                msglist=msg)
-
-    return render_template('index.html', localize=loc, navbardata=getavatars(), data=data, form=form,
-                           user=dict(role=current_user.get_role() if current_user.is_authenticated() else None))
+    return render_template('index.html', localize=loc, data=msg, form=form, paginator=pag,
+                           user=current_user.get_role() if current_user.is_authenticated else None)
 
 
 ''' TASK
@@ -92,14 +118,8 @@ def newtask():
         key = db.addtask(current_user.get_id(), structure=form.structure.data, title=form.taskname.data,
                          solvent=form.solvent.data, **tasktypes)
         if key:
-            return redirect(url_for('newtaskcode', code=key))
-    return render_template('newtask.html', form=form, localize=loc, navbardata=getavatars())
-
-
-@app.route('/newtaskcode/<code>', methods=['GET'])
-@login_required
-def newtaskcode(code):
-    return render_template('newtaskcode.html', code=code, localize=loc, navbardata=getavatars())
+            return render_template('newtaskcode.html', code=key, header=loc['taskcode'], comments=loc['taskcodecomment'])
+    return render_template('newtask.html', form=form, header=loc['newtask'], comments=loc['newtaskcomment'])
 
 
 @app.route('/spectras/', methods=['GET', 'POST'])
@@ -114,9 +134,13 @@ def spectras(sfilter=None):
 
     sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
     ufilter = request.args.get('user', None)
-    page = int(request.args.get('page', 1))
-    if page < 1:
-        return redirect(url_for('spectras', sfilter=sfilter, user=ufilter, page=1))
+    try:
+        page = int(request.args.get("page", 1))
+        if page < 1:
+            return redirect(url_for('spectras', sfilter=sfilter, user=ufilter, page=1))
+    except ValueError:
+        page = 1
+
     if ufilter:
         ''' спектры отсортированные по аватарам.
         '''
@@ -134,12 +158,10 @@ def spectras(sfilter=None):
         user = current_user.get_id()
         avatar = ''
 
-    spectras, pc = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
-    data = dict(npage=url_for('spectras', sfilter=sfilter, user=ufilter, page=page + 1) if page < pc else False,
-                ppage=url_for('spectras', sfilter=sfilter, user=ufilter, page=page - 1) if 1 < page <= pc else False,
-                spectras=spectras)
-    return render_template('spectras.html', localize=loc, form=form,
-                           navbardata=getavatars(sfilter=sfilter, ufilter=ufilter), data=data)
+    spectras, sc = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
+    pag = Pagination(page, sc, pagesize=50)
+
+    return render_template('spectras.html', localize=loc, form=form, data=spectras, paginator=pag)
 
 
 @app.route('/download/<int:task>/<file>', methods=['GET'])
@@ -161,8 +183,7 @@ def showtask(task):
     task = db.gettask(task, user=None if current_user.get_role() == 'admin' else current_user.get_id())
     if task:
         task['task'] = [(i, taskuserlikekeys.get(i), task['files'].get(i)) for i, j in task['task'].items() if j]
-        return render_template('showtask.html', localize=loc, navbardata=getavatars(), task=task,
-                               user=dict(role=current_user.get_role()))
+        return render_template('showtask.html', localize=loc, task=task, user=current_user.get_role())
     else:
         return redirect(url_for('spectras', sfilter='all'))
 
@@ -182,7 +203,7 @@ def contacts():
 @login_required
 def user(name=None):
     if name:
-        user = db.getuser(name)
+        user = db.getuser(name=name)
         if user:
             if current_user.get_login() == name:
                 user['current'] = True
@@ -197,18 +218,18 @@ def registration():
     if form.validate_on_submit():
         if db.adduser(form.fullname.data, form.username.data, form.password.data, form.laboratory.data):
             return redirect(url_for('login'))
-    return render_template('registration.html', form=form, localize=loc)
+    return render_template('formpage.html', form=form, header=loc['registration'], comments=loc['toe'])
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = Login()
     if form.validate_on_submit():
-        user = db.getuser(form.username.data)
+        user = db.getuser(name=form.username.data)
         if user and db.chkpwd(user['id'], form.password.data):
             login_user(User(**user), remember=True)
             return redirect(url_for('index'))
-    return render_template('login.html', form=form, localize=loc)
+    return render_template('formpage.html', form=form, header=loc['login'], comments='')
 
 
 @app.route('/logout', methods=['GET'])
@@ -225,7 +246,7 @@ def changeava():
     if form.validate_on_submit():
         if db.changeava(current_user.get_id()):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('newava.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['newava'], comments=loc['newavacomment'])
 
 
 @app.route('/changelab', methods=['GET', 'POST'])
@@ -235,7 +256,7 @@ def changelab():
     if form.validate_on_submit():
         if db.changelab(current_user.get_id(), form.laboratory.data):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('changelab.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['newlab'], comments=loc['changelabcomments'])
 
 
 @app.route('/changepwd', methods=['GET', 'POST'])
@@ -245,7 +266,7 @@ def changepwd():
     if form.validate_on_submit():
         if db.changepasswd(current_user.get_id(), form.newpassword.data):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('newpwd.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['newpwd'], comments='')
 
 
 @app.route('/shareava', methods=['GET', 'POST'])
@@ -253,9 +274,9 @@ def changepwd():
 def shareava():
     form = ChangeChief()
     if form.validate_on_submit():
-        if db.shareava(current_user.get_id(), db.getuser(form.name.data)['id']):
+        if db.shareava(current_user.get_id(), db.getuser(name=form.name.data)['id']):
             return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('setchief.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['setchief'], comments=loc['setchiefcomments'])
 
 
 ''' ADMIN SECTION
@@ -272,7 +293,7 @@ def changerole():
         users = db.getusersbypartname(form.username.data)
         if users:
             return render_template('changerolelist.html', data=users, localize=loc, navbardata=getavatars())
-    return render_template('changerole.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['changerole'], comments='')
 
 
 @app.route('/dochange/<int:user>', methods=['GET'])
@@ -294,7 +315,7 @@ def banuser():
         users = db.getusersbypartname(form.username.data)
         if users:
             return render_template('banuserlist.html', data=users, localize=loc, navbardata=getavatars())
-    return render_template('banuser.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['banuser'], comments='')
 
 
 @app.route('/doban/<int:user>', methods=['GET'])
@@ -313,7 +334,7 @@ def newlab():
     if form.validate_on_submit():
         db.addlab(form.labname.data)
         return redirect(url_for('user', name=current_user.get_login()))
-    return render_template('newlab.html', form=form, localize=loc, navbardata=getavatars())
+    return render_template('formpage.html', form=form, header=loc['newlab'], comments='')
 
 
 @app.route('/setstatus/<int:task>', methods=['GET'])

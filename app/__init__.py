@@ -23,22 +23,31 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from app.models import NmrDB
 from app.config import SECRET_KEY
+from flask_nav import Nav
+from app.navbar import Customrenderer
+from flask_nav import register_renderer
+
+
 
 
 def create_app():
     fapp = Flask(__name__)
     fapp.config['SECRET_KEY'] = SECRET_KEY
 
-    Bootstrap(fapp)
-
     lm = LoginManager()
     lm.init_app(fapp)
     lm.login_view = 'login'
-    return fapp, lm
+
+    nav = Nav()
+    nav.init_app(fapp)
+
+    Bootstrap(fapp)
+    register_renderer(fapp, 'myrenderer', Customrenderer)
+    return fapp, lm, nav
 
 
 print('INIT APP')
-app, login_manager = create_app()
+app, login_manager, nav = create_app()
 db = NmrDB()
 
 from app import views

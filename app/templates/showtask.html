@@ -1,8 +1,7 @@
 {% extends "main.html" %}
 {% block scripts %}
     {{super()}}
-    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/prototype.js') }}"
-            xmlns="http://www.w3.org/1999/html"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ketcher/prototype.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='ketcher/raphael.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/common.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='ketcher/util/vec2.js') }}"></script>
@@ -28,42 +27,69 @@
         });
         function copyToClipboard(id, text) {
             var fname = window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
-            $(id).text = 'add (' + fname + ')';
-            $(id).href += '&customname=' + fname
+            var lnk = $('addurl.'+id);
+            lnk.text = ' add (' + fname + ')';
+            lnk.href = '{{ url_for('addspectra', task=task.id) }}' + '?stype=' + id + '&customname=' + fname;
+            return false;
         }
     </script>
 {% endblock %}
 {% block page %}
     <div class="row">
-        <div class="col-md-4" id="structure" style="min-height:300px">{{ task.structure }}</div>
-        <div class="col-md-4">
-            <h3>{{ task.title }}</h3>
-            <h4>{{ task.solvent }}</h4>
-            {% if task.status %}
-                <h4>{{ localize.complete }}</h4>
-            {% else %}
-                <h4>{{ localize.notcomplete }}</h4>
-            {% endif %}
+        <div class="col-md-6 thumbnail" id="structure" style="min-height:300px">
+            {{ task.structure }}
+        </div>
+        <div class="col-md-2">
         </div>
         <div class="col-md-4">
-            <h3>{{ localize.tasktype }}</h3>
-            <ul>
-            {% for k, i, j in task.task %}
-                {% if j %}
-                    <li><a href="{{ url_for('download', task=task.id, file=j+'.zip') }}">{{ i }}</a> </li>
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-info">
+                    <h4 class="list-group-item-heading">{{ task.title }}</h4>
+                </li>
+                <li class="list-group-item">{{ task.time }}</li>
+                <li class="list-group-item">{{ task.solvent }}</li>
+                {% if user =='admin' %}
+                    {% if task.status %}
+                        <a href="{{ url_for('setstatus', task=task.id, status=False) }}" class="list-group-item active">
+                            <h4 class="list-group-item-heading">{{ localize.tasktype }}</h4>
+                            <p class="list-group-item-text">{{ localize.setincmp }}</p>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('setstatus', task=task.id) }}" class="list-group-item active">
+                            <h4 class="list-group-item-heading">{{ localize.tasktype }}</h4>
+                            <p class="list-group-item-text">{{ localize.setcmp }}</p>
+                        </a>
+                    {% endif %}
                 {% else %}
-                    <li>{{ i }}{% if user.role =='admin' %}: <a href="#" onclick=copyToClipboard('addurl.{{ k }}','{{ task.id }}.{{ k }}.1');>click to get name</a> <a id='addurl.{{ k }}' href="{{ url_for('addspectra', task=task.id, stype=k) }}">add</a> {% endif %}</li>
-                {% endif %}
-            {% endfor %}
-            </ul>
-            {% if user.role =='admin' %}
-                {% if task.status %}
-                    <a href="{{ url_for('setstatus', task=task.id, status=False) }}">{{ localize.setincmp }}</a>
-                {% else %}
-                    <a href="{{ url_for('setstatus', task=task.id) }}">{{ localize.setcmp }}</a>
+                    {% if task.status %}
+                        <a href="#" class="list-group-item list-group-item-success">
+                            <h4 class="list-group-item-heading">{{ localize.tasktype }}</h4>
+                            <p class="list-group-item-text">{{ localize.complete }}</p>
+                        </a>
+                    {% else %}
+                        <a href="#" class="list-group-item list-group-item-danger">
+                            <h4 class="list-group-item-heading">{{ localize.tasktype }}</h4>
+                            <p class="list-group-item-text">{{ localize.notcomplete }}</p>
+                        </a>
+                    {% endif %}
                 {% endif %}
 
-            {% endif %}
+                {% for k, i, j in task.task %}
+                    {% if j %}
+                        <a href="{{ url_for('download', task=task.id, file=j+'.zip') }}" class="list-group-item">{{ i }}</a>
+                    {% else %}
+                        {% if user =='admin' %}
+                            <li class="list-group-item">
+                                <a href="#" class="list-group-item-heading" onclick=copyToClipboard('{{ k }}','{{ task.id }}.{{ k }}.1');>get name</a>
+                                <a id='addurl.{{ k }}' href="{{ url_for('addspectra', task=task.id, stype=k) }}" class="list-group-item-text"> add ({{ i }})</a>
+                            </li>
+                        {% else %}
+                            <a href="#" class="list-group-item disabled">{{ i }}</a>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+
         </div>
     </div>
 {% endblock %}

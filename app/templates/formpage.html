@@ -2,9 +2,9 @@
 {% block page %}
     <div class="row">
         <div class="col-md-8">
-            <h2>{{ localize.newpwd }}</h2>
+            <h2>{{ header }}</h2>
             {{ wtf.quick_form(form, form_type='horizontal', button_map={'submit_button': 'primary'})}}
         </div>
-        <div class="col-md-4"></div>
+        <div class="col-md-4">{{ comments }}</div>
     </div>
 {% endblock %}

@@ -18,6 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
+from collections import OrderedDict
+from itertools import count
 from math import ceil
 from pony.orm import *
 import time
@@ -39,9 +41,9 @@ class Users(db.Entity):
     fullname = Required(str)
     name = Required(str, unique=True)
     passwd = Required(str)
-    avatars = Set("Avatars", reverse="users")
-    personalavatar = Optional("Avatars", reverse="user")
-    childavatars = Set("Avatars", reverse="parentuser")
+    avatars = Set("Avatars", reverse="users")  # all accessible avatars
+    personalavatar = Optional("Avatars", reverse="user")  # currently used avatar
+    childavatars = Set("Avatars", reverse="parentuser")  # all born avatars
     active = Required(bool)
     role = Required(str)
 
@@ -109,9 +111,12 @@ class NmrDB:
     def __init__(self):
         self.__cost = dict(h1=2, h1_p31=1, p31=5, p31_h1=1, c13=60, c13_h1=60, c13_apt=60, c13_dept=60, f19=1, si29=1,
                            b11=1, noesy=60, hsqc=60, hmbc=60, cosy=60)
-        self.__stypekey = {y: x + 1 for x, y in enumerate(sorted(self.__cost))}
-        self.__stypeval = {y: x for x, y in self.__stypekey.items()}
-        self.__gettasknumb = self.__tasknumb()
+        self.__stypekey = dict(c13=2, h1=8, hmbc=10, p31=13, b11=1, c13_h1=5, c13_apt=3, f19=7, si29=15, c13_dept=4,
+                               hsqc=11, p31_h1=14, cosy=6, h1_p31=9, noesy=12)
+        self.__stypeval = OrderedDict([(8, 'h1'), (5, 'c13_h1'), (14, 'p31_h1'), (13, 'p31'), (12, 'noesy'),
+                                       (6, 'cosy'), (11, 'hsqc'), (10, 'hmbc'), (9, 'h1_p31'), (2, 'c13'),
+                                       (3, 'c13_apt'), (4, 'c13_dept'), (1, 'b11'), (7, 'f19'), (15, 'si29')])
+        self.__gettasknumb = count(self.__tasknumb())
         self.__userlikekey = dict(h1='1H', h1_p31='1H{31P}', p31='31P', p31_h1='31P{1H}', c13='13C', c13_h1='13C{1H}',
                                   c13_apt='13C apt', c13_dept='13C dept135', f19='19F', si29='29Si',
                                   b11='11B', noesy='NOESY', hsqc='HSQC', hmbc='HMBC', cosy='COSY')
@@ -132,7 +137,7 @@ class NmrDB:
         user = Users.get(name=name)
         lab = Laboratory.get(id=lab)
         if lab and not user:
-            passwd = bcrypt.hashpw(passwd, bcrypt.gensalt())
+            passwd = bcrypt.hashpw(passwd.encode(), bcrypt.gensalt()).decode()
             user = Users(fullname=fullname, name=name, passwd=passwd, active=True, role=role)
             Avatars(user=user, users=user, laboratory=lab, parentuser=user)
             return True
@@ -177,13 +182,14 @@ class NmrDB:
 
     @db_session
     def getmessages(self, page=1, pagesize=5):
-        cc = ceil(count(x for x in Blog) / pagesize)
-        if cc and cc >= page:
-            q = select(x for x in Blog).order_by(Blog.id.desc()).page(page, pagesize=pagesize)
+        q = select(x for x in Blog)
+        cc = count(q)
+        if cc > (page - 1) * pagesize:
+            q.order_by(Blog.id.desc()).page(page, pagesize=pagesize)
             return [dict(time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
                     title=x.title, message=x.message) for x in q], cc
 
-        return [], 1
+        return [], cc
 
     @db_session
     def shareava(self, fromuser, touser):
@@ -216,13 +222,13 @@ class NmrDB:
         else:
             q = select(x for x in Tasks if status is None or x.status == status)
 
-        cc = ceil(count(q) / pagesize)
-        if cc and cc >= page:
-            return [dict(id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
-                    status=x.status, key=x.key, user=x.avatar.parentuser.fullname) for x in
-                    q.order_by(Tasks.id.desc()).page(page, pagesize=pagesize)], cc
+        cc = count(q)
+        if cc > (page - 1) * pagesize:
+            return [dict(n=n, id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
+                    status=x.status, key=x.key, user=x.avatar.parentuser.fullname) for n, x in
+                    enumerate(q.order_by(Tasks.id.desc()).page(page, pagesize=pagesize), start=1)], cc
 
-        return [], 1
+        return [], cc
 
     @db_session
     def changeava(self, user):
@@ -248,7 +254,7 @@ class NmrDB:
     def changepasswd(self, user, passwd):
         user = Users.get(id=user)
         if user:
-            passwd = bcrypt.hashpw(passwd, bcrypt.gensalt())
+            passwd = bcrypt.hashpw(passwd.encode(), bcrypt.gensalt()).decode()
             user.passwd = passwd
             return True
 
@@ -258,12 +264,11 @@ class NmrDB:
     def __gettaskkey(key):
         return '%s%d' % (key, crc.calc(key) % 10)
 
-    @staticmethod
-    def __tasknumb():
-        i = int(time.time()) // 1000
-        while True:
-            i += 1
-            yield i % 10000
+    @db_session
+    def __tasknumb(self):
+        i = select(x for x in Tasks).order_by(Tasks.id.desc()).first()
+        i = i.key if i else '00'
+        return int(i[:-1]) + 1
 
     @db_session
     def addtask(self, user, **kwargs):
@@ -296,31 +301,21 @@ class NmrDB:
         return False
 
     @db_session
-    def getuserbyname(self, name):
-        user = Users.get(fullname=name)
-        if user:
-            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
-                        lab=user.personalavatar.laboratory.name, active=user.active, role=user.role)
-
-        return False
-
-    @db_session
     def getusersbypartname(self, name):
         q = select((x.id, x.name, x.fullname, x.role) for x in Users if name in x.fullname)
         return [dict(id=x, name=y, fullname=z, role=w) for x, y, z, w in q]
 
     @db_session
-    def getuser(self, name):
-        user = Users.get(name=name)
-        if user:
-            return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
-                        lab=user.personalavatar.laboratory.name, active=user.active, role=user.role)
+    def getuser(self, name=None, fullname=None, userid=None):
+        if name:
+            user = Users.get(name=name)
+        elif fullname:
+            user = Users.get(fullname=name)
+        elif id:
+            user = Users.get(id=userid)
+        else:
+            return False
 
-        return False
-
-    @db_session
-    def getuserbyid(self, userid):
-        user = Users.get(id=userid)
         if user:
             return dict(id=user.id, fullname=user.fullname, name=user.name, passwd=user.passwd,
                         lab=user.personalavatar.laboratory.name, active=user.active, role=user.role)
@@ -329,8 +324,8 @@ class NmrDB:
 
     @db_session
     def chkpwd(self, userid, pwd):
-        hashed = Users.get(id=userid).passwd
-        return bcrypt.hashpw(pwd, hashed) == hashed
+        hashed = Users.get(id=userid).passwd.encode()
+        return bcrypt.hashpw(pwd.encode(), hashed) == hashed
 
     @db_session
     def chktaskaccess(self, task, user):
@@ -368,6 +363,7 @@ class NmrDB:
         return dict(title=task.title, structure=task.structure, status=task.status, id=task.id,
                     files={self.__stypeval.get(x.stype, "h1"): x.file for x in task.spectras},
                     solvent=self.__solvents[task.solvent],
+                    time=datetime.datetime.fromtimestamp(task.time).strftime('%Y-%m-%d %H:%M:%S'),
                     task=dict(h1=task.h1,
                               h1_p31=task.h1_p31,
                               p31=task.p31,

@@ -1,10 +1,9 @@
 {% extends "bootstrap/base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "bootstrap/fixes.html" as fixes %}
-{%- from 'navbar.html' import navbar %}
 
 {% block navbar %}
-    {{ navbar(localize, navbar=navbardata) }}
+    {{ nav.top_nav.render(renderer='myrenderer') }}
 {% endblock %}
 
 {% block content %}
@@ -15,7 +14,6 @@
         </div>
     </div>
 {% endblock %}
-
 
 {% block head %}
 {{super()}}

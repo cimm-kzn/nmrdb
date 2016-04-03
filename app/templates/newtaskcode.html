@@ -1,12 +1,10 @@
 {% extends "main.html" %}
 {% block page %}
-    <div class="row">
-        <div class="col-md-4">
-            <h2>{{ localize.taskcode }}:</h2>
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{ header }}</h3>
         </div>
-        <div class="col-md-4">
-            <h1>{{ code }}</h1>
-        </div>
-        <div class="col-md-4"></div>
+        <div class="panel-body"><h2>{{ code }}</h2></div>
+        <div class="panel-footer">{{ comments }}</div>
     </div>
 {% endblock %}
