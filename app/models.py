@@ -211,21 +211,22 @@ class NmrDB:
         return False
 
     @db_session
-    def gettasklist(self, user=0, avatar='', status=None, page=1, pagesize=50):
-        user = Users.get(id=user)
-        avatar = select(x for x in Avatars if x.user.name == avatar).first()  # Avatars.get(id=avatar)
+    def gettasklist(self, user=None, avatar=None, status=None, page=1, pagesize=50):
+        user = Users.get(id=user) if user else None
+        avatar = select(x for x in Avatars if x.user.name == avatar).first() if avatar else None  # Avatars.get(id=avatar)
 
-        if user:
+        if user:  # all spectra available for user
             q = select(x for x in Tasks if x.avatar in user.avatars and (status is None or x.status == status))
-        elif avatar:
+        elif avatar:  # all spectra available for avatar
             q = select(x for x in Tasks if x.avatar == avatar and (status is None or x.status == status))
-        else:
+        else:  # all spectra in db
             q = select(x for x in Tasks if status is None or x.status == status)
 
         cc = count(q)
         if cc > (page - 1) * pagesize:
             return [dict(n=n, id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
-                    status=x.status, key=x.key, user=x.avatar.parentuser.fullname) for n, x in
+                         status=x.status, key=x.key,
+                         user=x.avatar.parentuser.fullname, userid=x.avatar.parentuser.name) for n, x in
                     enumerate(q.order_by(Tasks.id.desc()).page(page, pagesize=pagesize), start=1)], cc
 
         return [], cc
@@ -268,6 +269,7 @@ class NmrDB:
     def __tasknumb(self):
         i = select(x for x in Tasks).order_by(Tasks.id.desc()).first()
         i = i.key if i else '00'
+        print('LAST TASK KEY', i)
         return int(i[:-1]) + 1
 
     @db_session

@@ -22,17 +22,16 @@ from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from app.models import NmrDB
-from app.config import SECRET_KEY
+from app.config import SECRET_KEY, BOOTSTRAP_SERVE_LOCAL
 from flask_nav import Nav
-from app.navbar import Customrenderer
+from app.navbar import Customrenderer, top_nav
 from flask_nav import register_renderer
-
-
 
 
 def create_app():
     fapp = Flask(__name__)
     fapp.config['SECRET_KEY'] = SECRET_KEY
+    fapp.config['BOOTSTRAP_SERVE_LOCAL'] = BOOTSTRAP_SERVE_LOCAL
 
     lm = LoginManager()
     lm.init_app(fapp)
@@ -43,6 +42,7 @@ def create_app():
 
     Bootstrap(fapp)
     register_renderer(fapp, 'myrenderer', Customrenderer)
+    nav.register_element('top_nav', top_nav)
     return fapp, lm, nav
 
 

@@ -1,13 +1,41 @@
 from math import ceil
 
 from flask_nav.elements import *
+from flask_login import current_user
 from hashlib import sha1
 from dominate import tags
 from flask_bootstrap.nav import BootstrapRenderer
+from app.localization import localization
+
+
+loc = localization()
 
 
 class Rightbar(Subgroup):
     pass
+
+
+def top_nav(sfilter='all', ufilter=None):
+    navbar = [View(loc['home'], 'index'),
+              View(loc['contacts'], 'contacts')]
+
+    if current_user.is_authenticated:
+        add = [Separator(), View(loc['fclear'], 'spectras', sfilter=sfilter)] if ufilter else []
+        sg = Subgroup(loc['filters'],
+                      View(loc['all'], 'spectras', sfilter='all', user=ufilter or None),
+                      View(loc['new'], 'spectras', sfilter='new', user=ufilter or None),
+                      View(loc['cmp'], 'spectras', sfilter='cmp', user=ufilter or None),
+                      *add)
+        rg = Rightbar(current_user.name, View(loc['profile'], 'user', name=current_user.get_login()),
+                      View(loc['logout'], 'logout'))
+        navbar.append(sg)
+        navbar.append(View(loc['newtask'], 'newtask'))
+
+    else:
+        rg = Rightbar(loc['anon'], View(loc['login'], 'login'), Separator(), Text(loc['doreg']),
+                      View(loc['registration'], 'registration'))
+    navbar.append(rg)
+    return Navbar(loc['project'], *navbar)
 
 
 class Customrenderer(BootstrapRenderer):

@@ -18,68 +18,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-from functools import wraps
-
 from flask import render_template, request, redirect, url_for, make_response
 from app.localization import localization
-from app import db, nav, app
+from app import db, app
 from app.forms import Registration, Login, Newlab, Newtask, Changelab, Changeava, ChangeChief, Changepwd, Newmsg, \
     Banuser, Gettask
-from app.logins import User
+from app.logins import User, admin_required
 from flask_login import login_user, login_required, logout_user, current_user
 from flask_nav.elements import *
-from app.navbar import Rightbar, Pagination
+from app.navbar import top_nav, Pagination
 
 
 loc = localization()
 statuscode = dict(all=None, cmp=True, new=False)
 taskuserlikekeys = db.gettaskuserlikekeys()
-
-
-def admin_required(role=None):
-    def wrapper(fn):
-        @wraps(fn)
-        def decorated_view(*args, **kwargs):
-            if role and current_user.get_role() != role:
-                return redirect(url_for('index'))
-            return fn(*args, **kwargs)
-
-        return decorated_view
-
-    return wrapper
-
-
-def getavatars(sfilter='all', ufilter=None):
-    if current_user.is_authenticated:
-        return dict(name=current_user.name, child=db.getavatars(current_user.get_id()),
-                    ufilter=ufilter, sfilter=sfilter, login=current_user.get_login())
-
-    return None
-
-
-@nav.navigation()
-def top_nav():
-    navbar = [View(loc['home'], 'index'),
-              View(loc['contacts'], 'contacts')]
-    print(request.endpoint)
-
-    if current_user.is_authenticated:
-        sg = Subgroup(loc['filters'],
-                      View(loc['all'], 'spectras', sfilter='all', user='' or None),
-                      View(loc['new'], 'spectras', sfilter='new', user='' or None),
-                      View(loc['cmp'], 'spectras', sfilter='cmp', user='' or None),
-                      Separator(), Text(loc['sub']),)
-        rg = Rightbar(current_user.name, View(loc['profile'], 'user', name=current_user.get_login()),
-                      View(loc['logout'], 'logout'))
-        navbar.append(sg)
-        navbar.append(View(loc['newtask'], 'newtask'))
-
-    else:
-        rg = Rightbar(loc['anon'], View(loc['login'], 'login'), Separator(), Text(loc['doreg']),
-                      View(loc['registration'], 'registration'))
-    navbar.append(rg)
-    #print(Navbar(loc['project'], *navbar).render(renderer='myrenderer'))
-    return Navbar(loc['project'], *navbar)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -118,8 +70,10 @@ def newtask():
         key = db.addtask(current_user.get_id(), structure=form.structure.data, title=form.taskname.data,
                          solvent=form.solvent.data, **tasktypes)
         if key:
-            return render_template('newtaskcode.html', code=key, header=loc['taskcode'], comments=loc['taskcodecomment'])
-    return render_template('newtask.html', form=form, header=loc['newtask'], comments=loc['newtaskcomment'])
+            return render_template('newtaskcode.html', code=key, header=loc['taskcode'],
+                                   comments=loc['taskcodecomment'])
+    return render_template('newtask.html', form=form, header=loc['newtask'],
+                           comments=loc['newtaskcomment'])
 
 
 @app.route('/spectras/', methods=['GET', 'POST'])
@@ -141,27 +95,25 @@ def spectras(sfilter=None):
     except ValueError:
         page = 1
 
+    user = avatar = None
     if ufilter:
         ''' спектры отсортированные по аватарам.
         '''
-        user = 0
         access = [x[2] for x in db.getavatars(current_user.get_id())]
-        avatar = ufilter if ufilter in access or current_user.get_role() == 'admin' else ''
-    elif current_user.get_role() == 'admin':
-        ''' админский доступ ко все спектрам. нужно только для добавления в обработку по сути.
-        '''
-        user = 0
-        avatar = ''
-    else:
+        if ufilter in access or current_user.get_role() == 'admin':
+            avatar = ufilter
+        else:
+            user = current_user.get_id()
+    elif current_user.get_role() != 'admin':
         ''' все доступные пользователю спектры от всех шар.
         '''
         user = current_user.get_id()
-        avatar = ''
 
     spectras, sc = db.gettasklist(user=user, avatar=avatar, status=statuscode.get(sfilter), page=page, pagesize=50)
     pag = Pagination(page, sc, pagesize=50)
 
-    return render_template('spectras.html', localize=loc, form=form, data=spectras, paginator=pag)
+    return render_template('spectras.html', localize=loc, form=form, data=spectras, paginator=pag, sfilter=sfilter,
+                           top_nav=top_nav(sfilter=sfilter, ufilter=ufilter).render(renderer='myrenderer'))
 
 
 @app.route('/download/<int:task>/<file>', methods=['GET'])
@@ -195,7 +147,7 @@ def showtask(task):
 
 @app.route('/contacts', methods=['GET'])
 def contacts():
-    return render_template('contacts.html', localize=loc, navbardata=getavatars())
+    return render_template('contacts.html')
 
 
 @app.route('/user/', methods=['GET'])
@@ -207,7 +159,7 @@ def user(name=None):
         if user:
             if current_user.get_login() == name:
                 user['current'] = True
-            return render_template('user.html', localize=loc, navbardata=getavatars(), user=user)
+            return render_template('user.html', localize=loc, user=user)
 
     return redirect(url_for('user', name=current_user.get_login()))
 
@@ -292,7 +244,7 @@ def changerole():
     if form.validate_on_submit():
         users = db.getusersbypartname(form.username.data)
         if users:
-            return render_template('changerolelist.html', data=users, localize=loc, navbardata=getavatars())
+            return render_template('changerolelist.html', data=users, localize=loc)
     return render_template('formpage.html', form=form, header=loc['changerole'], comments='')
 
 
@@ -314,7 +266,7 @@ def banuser():
     if form.validate_on_submit():
         users = db.getusersbypartname(form.username.data)
         if users:
-            return render_template('banuserlist.html', data=users, localize=loc, navbardata=getavatars())
+            return render_template('banuserlist.html', data=users, localize=loc)
     return render_template('formpage.html', form=form, header=loc['banuser'], comments='')
 
 

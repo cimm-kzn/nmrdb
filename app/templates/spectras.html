@@ -1,8 +1,6 @@
 {% extends "main.html" %}
 {% from "bootstrap/pagination.html" import render_pagination %}
 {% block page %}
-
-
     <div class="panel panel-default">
         <div class="panel-heading">{{ localize.spectras }}</div>
         <div class="panel-body">
@@ -22,7 +20,7 @@
                 {% for x in data %}
                     <tr>
                         <th scope="row">{{ x.n }}</th>
-                        <td>{{ x.user }}</td>
+                        <td><a href="{{ url_for('spectras', sfilter=sfilter, user=x.userid) }}">{{ x.user }}</a></td>
                         <td>{{ x.time }}</td>
                         <td>{{ x.status }}</td>
                         <td><a href="{{ url_for('showtask', task=x.id) }}">{{ x.key }}</a></td>

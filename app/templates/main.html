@@ -3,7 +3,11 @@
 {% import "bootstrap/fixes.html" as fixes %}
 
 {% block navbar %}
-    {{ nav.top_nav.render(renderer='myrenderer') }}
+    {% if top_nav %}
+        {{ top_nav }}
+    {% else %}
+        {{ nav.top_nav.render(renderer='myrenderer') }}
+    {% endif %}
 {% endblock %}
 
 {% block content %}

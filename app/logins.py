@@ -18,9 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-__author__ = 'stsouko'
+from functools import wraps
 from app import login_manager, db
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
+from flask import redirect, url_for
 
 
 @login_manager.user_loader
@@ -62,3 +63,15 @@ class User(UserMixin):
     def get_lab(self):
         return self.__lab
 
+
+def admin_required(role=None):
+    def wrapper(fn):
+        @wraps(fn)
+        def decorated_view(*args, **kwargs):
+            if role and current_user.get_role() != role:
+                return redirect(url_for('index'))
+            return fn(*args, **kwargs)
+
+        return decorated_view
+
+    return wrapper
