@@ -309,3 +309,23 @@ def addspectra(task):
     cname = request.args.get('customname') or '%s.%s.1' % (task, stype)
     db.addspectras(task, cname, stype)
     return redirect(url_for('showtask', task=task))
+
+
+@app.route('/journal', methods=['GET'])
+@login_required
+@admin_required('admin')
+def journal():
+    spectras = db.get_journal()
+    return render_template('journal.html', data=spectras, localize=loc)
+
+
+@app.route('/stats', methods=['GET'])
+@login_required
+@admin_required('admin')
+def stats():
+    spectras = []
+    for n, (k, v) in enumerate(db.getstatistics().items(), start=1):
+        v.update(dict(n=n, lab=k))
+        spectras.append(v)
+
+    return render_template('stats.html', data=spectras, localize=loc)

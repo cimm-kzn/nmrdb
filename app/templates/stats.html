@@ -1,0 +1,54 @@
+{% extends "main.html" %}
+{% block page %}
+    <div class="panel panel-default">
+        <div class="panel-heading">{{ localize.spectras }}</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{{ localize.lab }}</th>
+                    <th>{{ localize.total }}</th>
+                    <th>1H</th>
+                    <th>1H{31P}</th>
+                    <th>31P</th>
+                    <th>31P{1H}</th>
+                    <th>13C</th>
+                    <th>13C{1H}</th>
+                    <th>13C apt</th>
+                    <th>13C dept135</th>
+                    <th>19F</th>
+                    <th>29Si</th>
+                    <th>11B</th>
+                    <th>NOESY</th>
+                    <th>HSQC</th>
+                    <th>HMBC</th>
+                    <th>COSY</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in data %}
+                    <tr>
+                        <th scope="row">{{ x.n }}</th>
+                        <td>{{ x.lab }}</td>
+                        <td>{{ x.total }}</td>
+                        <td>{{ x.h1 }}</td>
+                        <td>{{ x.h1_p31 }}</td>
+                        <td>{{ x.p31 }}</td>
+                        <td>{{ x.p31_h1 }}</td>
+                        <td>{{ x.c13 }}</td>
+                        <td>{{ x.c13_h1 }}</td>
+                        <td>{{ x.c13_apt }}</td>
+                        <td>{{ x.c13_dept }}</td>
+                        <td>{{ x.f19 }}</td>
+                        <td>{{ x.si29 }}</td>
+                        <td>{{ x.b11 }}</td>
+                        <td>{{ x.noesy }}</td>
+                        <td>{{ x.hsqc }}</td>
+                        <td>{{ x.hmbc }}</td>
+                        <td>{{ x.cosy }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

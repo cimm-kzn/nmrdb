@@ -46,7 +46,8 @@ loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras
            toe='условия использования и зачем все это нужно',
            newtaskcomment='task creation instruction',
            banuser='Ban User', changerole='Change Role',
-           all='All', cmp='Completed', new='New', profile='Profile',
+           all='All', cmp='Completed', new='New', profile='Profile', lab='Laboratory', files='Files',
+           total='Total time',
            taskcodecomment='WHY NEED TASK?', usersetting='Warning! Using carefully')
 
 

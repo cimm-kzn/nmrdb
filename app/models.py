@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from itertools import count
 from math import ceil
 from pony.orm import *
@@ -185,9 +185,9 @@ class NmrDB:
         q = select(x for x in Blog)
         cc = count(q)
         if cc > (page - 1) * pagesize:
-            q.order_by(Blog.id.desc()).page(page, pagesize=pagesize)
             return [dict(time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
-                    title=x.title, message=x.message) for x in q], cc
+                    title=x.title, message=x.message)
+                    for x in q.order_by(Blog.id.desc()).page(page, pagesize=pagesize)], cc
 
         return [], cc
 
@@ -422,13 +422,18 @@ class NmrDB:
         for x, y, z in left_join(
                 (x.stype, x.task.avatar.laboratory.name, x.task.time) for x in Spectras if x.task.time > stime):
             x = self.__stypeval.get(x, 'h1')
-            if y in stats:
-                if x in stats[y]:
-                    stats[y][x] += 1
-                else:
-                    stats[y][x] = 1
-            else:
-                stats[y] = {x: 1}
+            stats.setdefault(y, defaultdict(int))[x] += 1
+
         for i, j in stats.items():
-            stats[i]['time'] = sum([self.__cost.get(x) * y for x, y in j.items()])
+            stats[i]['total'] = sum([self.__cost.get(x) * y for x, y in j.items()])
         return stats
+
+    @db_session
+    def get_journal(self, stime=0):
+        q = select(x for x in Tasks if x.time > stime)
+
+        return [dict(n=n, id=x.id, time=datetime.datetime.fromtimestamp(x.time).strftime('%Y-%m-%d %H:%M:%S'),
+                     status=x.status, key=x.key, lab=x.avatar.laboratory.name,
+                     user=x.avatar.parentuser.fullname, userid=x.avatar.parentuser.name,
+                     files=[self.__userlikekey[self.__stypeval.get(i.stype, 'h1')] for i in x.spectras]
+                     ) for n, x in enumerate(q.order_by(Tasks.id), start=1)]

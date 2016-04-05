@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+{% block page %}
+    <div class="panel panel-default">
+        <div class="panel-heading">{{ localize.spectras }}</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{{ localize.time }}</th>
+                    <th>{{ localize.lab }}</th>
+                    <th>{{ localize.user }}</th>
+                    <th>{{ localize.status }}</th>
+                    <th>{{ localize.files }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for x in data %}
+                    <tr>
+                        <th scope="row">{{ x.n }}</th>
+                        <td>{{ x.time }}</td>
+                        <td>{{ x.lab }}</td>
+                        <td>{{ x.user }}</td>
+                        <td>{{ x.status }}</td>
+                        <td>{{ ', '.join(x.files) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
