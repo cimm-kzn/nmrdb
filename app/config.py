@@ -8,3 +8,5 @@ DB_USER = 'nmrdb'
 DB_PASS = 'jyvt0n3'
 DB_TABLE = 'nmrdb'
 DB_LOC = 'localhost'
+
+BOOTSTRAP_SERVE_LOCAL = False
