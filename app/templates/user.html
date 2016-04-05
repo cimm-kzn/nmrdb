@@ -1,26 +1,35 @@
 {% extends "main.html" %}
 {% block page %}
     <div class="row">
-        <div class="col-md-8">
-            <h2>{{ user.fullname }}</h2>
-            <p>{{ user.lab }}</p>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{ user.fullname }}</h3>
+                </div>
+                <div class="panel-body">{{ user.lab }}</div>
+            </div>
         </div>
+        <div class="col-md-2"></div>
         <div class="col-md-4">
             {% if user.current %}
-                <ul>
-                    <li><a href="{{ url_for('changeava') }}">{{ localize.newava }}</a></li>
-                    <li><a href="{{ url_for('changelab') }}">{{ localize.newlab }}</a></li>
-                    <li><a href="{{ url_for('changepwd') }}">{{ localize.newpwd }}</a></li>
-                    <li><a href="{{ url_for('shareava') }}">{{ localize.setchief }}</a></li>
-                </ul>
-                {% if user.role == "admin" %}
-                    <h2>ADMIN</h2>
-                    <ul>
-                        <li><a href="{{ url_for('newlab') }}">{{ localize.newlab }}</a></li>
-                        <li><a href="{{ url_for('changerole') }}">{{ localize.changerole }}</a></li>
-                        <li><a href="{{ url_for('banuser') }}">{{ localize.banuser }}</a></li>
-                    </ul>
-                {% endif %}
+                <div class="list-group">
+                    <div class="list-group-item list-group-item-warning">
+                        <h4 class="list-group-item-heading">{{ localize.usersetting }}</h4>
+                    </div>
+                    <a class="list-group-item" href="{{ url_for('changeava') }}">{{ localize.newava }}</a>
+                    <a class="list-group-item" href="{{ url_for('changelab') }}">{{ localize.newlab }}</a>
+                    <a class="list-group-item" href="{{ url_for('changepwd') }}">{{ localize.newpwd }}</a>
+                    <a class="list-group-item" href="{{ url_for('shareava') }}">{{ localize.setchief }}</a>
+                    {% if user.role == "admin" %}
+                        <div class="list-group-item list-group-item-danger">
+                            <h4 class="list-group-item-heading">ADMIN ZONE</h4>
+                        </div>
+                        <a class="list-group-item list-group-item-danger" href="{{ url_for('newlab') }}">{{ localize.newlab }}</a>
+                        <a class="list-group-item list-group-item-danger" href="{{ url_for('changerole') }}">{{ localize.changerole }}</a>
+                        <a class="list-group-item list-group-item-danger" href="{{ url_for('banuser') }}">{{ localize.banuser }}</a>
+                    {% endif %}
+                </div>
+
             {% endif %}
         </div>
     </div>

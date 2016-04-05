@@ -21,7 +21,7 @@ def top_nav(sfilter='all', ufilter=None):
 
     if current_user.is_authenticated:
         add = [Separator(), View(loc['fclear'], 'spectras', sfilter=sfilter)] if ufilter else []
-        sg = Subgroup(loc['filters'],
+        sg = Subgroup(loc['spectras'],
                       View(loc['all'], 'spectras', sfilter='all', user=ufilter or None),
                       View(loc['new'], 'spectras', sfilter='new', user=ufilter or None),
                       View(loc['cmp'], 'spectras', sfilter='cmp', user=ufilter or None),

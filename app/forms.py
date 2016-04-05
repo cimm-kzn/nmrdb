@@ -23,6 +23,10 @@ from flask_wtf import Form
 from wtforms import StringField, HiddenField, validators, \
     BooleanField, SubmitField, SelectField, PasswordField, ValidationError, SelectMultipleField, TextAreaField
 from flask_login import current_user
+from app.localization import localization
+
+
+loc = localization()
 
 
 class CheckExist(object):
@@ -146,5 +150,12 @@ class Newtask(Form):
 
 
 class Gettask(Form):
-    task = StringField('Task', [validators.DataRequired()])
+    def __init__(self):
+        super().__init__()
+        self.avatar.choices = [('', '')] + [(z, y) for x, y, z in db.getavatars(user=current_user.get_id())]
+
+    task = StringField('Task', [validators.Optional()])
+    avatar = SelectField('Avatars', [validators.Optional()], coerce=str,)
+    filters = SelectField('Filter', [validators.DataRequired()],
+                          choices=[('all', loc['all']), ('new', loc['new']), ('cmp', loc['cmp'])], coerce=str)
     submit_button = SubmitField('Enter')

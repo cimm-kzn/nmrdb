@@ -24,13 +24,14 @@ rus = dict(logout='Выйти', home='Главная', sub='Иерархия', s
            project='NMRdb', contacts='Контакты', login='Логин',
            registration='Регистрация', newlab='Новая лаборатория', fclear='Очиcтить фильтры по пользователям',
            doreg='Новый пользователь', newtask='Новое задание',
-           newava='Поменять позицию', newpwd='Новый пароль', setchief='Поделиться спектром', taskcode='номер задания',
+           newava='Поменять позицию', newpwd='Новый пароль', setchief='Предоставить спектры', taskcode='номер задания',
            status='Завершен?', user='Имя пользователя',
            time='Время', complete='Работа завершена', notcomplete='В работе', tasktype='образец(тип) задания',
            setcmp='Пометить задание завершенным',
            nextpage='Следущая страница', prevpage='Преведущая страница',
            newavacomment='Необходимо для закрытия доступа к новым спектрам пользователям которыми в прошлом был дан доступ. ',
-           toe='Внимание, без регистрации вы не сможете пользоваться данным ресурсом!')
+           toe='Внимание, без регистрации вы не сможете пользоваться данным ресурсом!',
+           usersetting='Использовать осторожно!')
 
 loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras', anon='Anonymous',
            filters='Filters', project='NMRdb', contacts='Contacts', login='Login',
@@ -45,8 +46,8 @@ loc = dict(logout='Log Out', home='Home', sub='subordinates', spectras='Spectras
            toe='условия использования и зачем все это нужно',
            newtaskcomment='task creation instruction',
            banuser='Ban User', changerole='Change Role',
-           all='all', cmp='completed', new='new', profile='Profile',
-           taskcodecomment='WHY NEED TASK?')
+           all='All', cmp='Completed', new='New', profile='Profile',
+           taskcodecomment='WHY NEED TASK?', usersetting='Warning! Using carefully')
 
 
 def localization():

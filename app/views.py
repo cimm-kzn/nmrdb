@@ -82,18 +82,21 @@ def newtask():
 def spectras(sfilter=None):
     form = Gettask()
     if form.validate_on_submit():
-        task = db.gettaskbykey(form.task.data)
-        if task:
-            return redirect(url_for('showtask', task=task['id']))
+        if form.task.data:
+            task = db.gettaskbykey(form.task.data)
+            if task:
+                return redirect(url_for('showtask', task=task['id']))
 
-    sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
+        return redirect(url_for('spectras', user=form.avatar.data, sfilter=form.filters.data))
+
     ufilter = request.args.get('user', None)
+    sfilter = 'all' if sfilter not in ['all', 'cmp', 'new'] else sfilter
     try:
         page = int(request.args.get("page", 1))
-        if page < 1:
-            return redirect(url_for('spectras', sfilter=sfilter, user=ufilter, page=1))
     except ValueError:
         page = 1
+    if page < 1:
+            return redirect(url_for('spectras', sfilter=sfilter, user=ufilter, page=1))
 
     user = avatar = None
     if ufilter:

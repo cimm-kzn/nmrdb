@@ -205,7 +205,11 @@ class NmrDB:
     @db_session
     def getavatars(self, user):
         user = Users.get(id=user)
+
         if user:
+            if user.role == 'admin':
+                return [(x.id, x.parentuser.fullname, x.parentuser.name) for x in select(x for x in Avatars)]
+
             return [(x.id, x.parentuser.fullname, x.parentuser.name) for x in user.avatars]
 
         return False
