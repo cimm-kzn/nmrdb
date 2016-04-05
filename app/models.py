@@ -353,6 +353,14 @@ class NmrDB:
         return False
 
     @db_session
+    def gettaskbyspectra(self, fname):
+        file = Spectras.get(file=fname)
+        if file:
+            return self.__gettask(file.task)
+
+        return False
+
+    @db_session
     def gettask(self, task, user=None):
         task = Tasks.get(id=task)
 

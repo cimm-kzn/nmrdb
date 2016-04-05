@@ -83,7 +83,7 @@ def spectras(sfilter=None):
     form = Gettask()
     if form.validate_on_submit():
         if form.task.data:
-            task = db.gettaskbykey(form.task.data)
+            task = db.gettaskbykey(form.task.data) or db.gettaskbyspectra(form.task.data)
             if task:
                 return redirect(url_for('showtask', task=task['id']))
 
