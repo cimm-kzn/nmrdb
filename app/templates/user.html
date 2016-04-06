@@ -1,4 +1,22 @@
 {% extends "main.html" %}
+{% block styles %}
+    {{super()}}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}" type="text/css"/>
+{% endblock %}
+{% block scripts %}
+    {{super()}}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-datetimepicker.min.js') }}"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('#datetimepicker1').datetimepicker().on("dp.change", function (e) {
+
+                $('#getstats').attr("href", '{{ url_for('stats') }}' + '?stime=' + e['date'].unix());
+                $('#getjournal').attr("href", '{{ url_for('journal') }}' + '?stime=' + e['date'].unix());
+         });
+        });
+    </script>
+{% endblock %}
 {% block page %}
     <div class="row">
         <div class="col-md-6">
@@ -27,6 +45,16 @@
                         <a class="list-group-item list-group-item-danger" href="{{ url_for('newlab') }}">{{ localize.newlab }}</a>
                         <a class="list-group-item list-group-item-danger" href="{{ url_for('changerole') }}">{{ localize.changerole }}</a>
                         <a class="list-group-item list-group-item-danger" href="{{ url_for('banuser') }}">{{ localize.banuser }}</a>
+                        <div class="list-group-item list-group-item-danger">
+                            <div class='input-group date' id='datetimepicker1'>
+                                <input type='text' class="form-control" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <a class="list-group-item list-group-item-danger" id="getjournal" href="{{ url_for('journal') }}">get journal</a>
+                        <a class="list-group-item list-group-item-danger" id="getstats" href="{{ url_for('stats') }}">get stats</a>
                     {% endif %}
                 </div>
 

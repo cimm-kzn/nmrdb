@@ -315,7 +315,12 @@ def addspectra(task):
 @login_required
 @admin_required('admin')
 def journal():
-    spectras = db.get_journal()
+    try:
+        stime = int(request.args.get('stime'))
+    except:
+        stime = 0
+
+    spectras = db.get_journal(stime=stime)
     return render_template('journal.html', data=spectras, localize=loc)
 
 
@@ -323,8 +328,13 @@ def journal():
 @login_required
 @admin_required('admin')
 def stats():
+    try:
+        stime = int(request.args.get('stime'))
+    except:
+        stime = 0
+
     spectras = []
-    for n, (k, v) in enumerate(db.getstatistics().items(), start=1):
+    for n, (k, v) in enumerate(db.getstatistics(stime=stime).items(), start=1):
         v.update(dict(n=n, lab=k))
         spectras.append(v)
 
