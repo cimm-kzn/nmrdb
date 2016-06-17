@@ -374,7 +374,9 @@ class NmrDB:
         return False
 
     def __gettask(self, task):
-        return dict(title=task.title, structure=task.structure, status=task.status, id=task.id,
+        return dict(title=task.title,
+                    structure='\r\n%s\r\n' % task.structure.strip(),
+                    status=task.status, id=task.id,
                     files={self.__stypeval.get(x.stype, "h1"): x.file for x in task.spectras},
                     solvent=self.__solvents[task.solvent],
                     time=datetime.datetime.fromtimestamp(task.time).strftime('%Y-%m-%d %H:%M:%S'),
